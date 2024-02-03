@@ -54,10 +54,10 @@ class CityScapes(Dataset):
             assert all(isinstance(city, str) for city in cities), "all elements in cities should be a string"
             self.cities = cities
         else:
-            self.cities = sorted(os.listdir(os.path.join(self.root_dir, 'Cityspaces', 'images', self.mode)))
+            self.cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.mode)))
 
-        self.image_dir = os.path.join(self.root_dir, 'Cityspaces', 'images', self.mode)
-        self.label_dir = os.path.join(self.root_dir, 'Cityspaces', 'gtFine', self.mode)
+        self.image_dir = os.path.join(self.root_dir, 'images', self.mode)
+        self.label_dir = os.path.join(self.root_dir, 'gtFine', self.mode)
 
         self.image_paths = []
         self.label_paths = []
