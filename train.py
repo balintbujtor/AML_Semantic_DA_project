@@ -233,7 +233,7 @@ def main():
                     pin_memory=False,
                     drop_last=True)
 
-    val_dataset = CityScapes(mode='val')
+    val_dataset = CityScapes(root_dir=root_dir, mode='val')
     dataloader_val = DataLoader(val_dataset,
                        batch_size=1,
                        shuffle=False,
