@@ -124,6 +124,12 @@ def str2bool(v):
 def parse_args():
     parse = argparse.ArgumentParser()
 
+    parse.add_argument('--root_dir',
+                       dest='root_dir',
+                       type=str,
+                       default='',
+    )
+    
     parse.add_argument('--mode',
                        dest='mode',
                        type=str,
@@ -215,9 +221,11 @@ def main():
     ## dataset
     n_classes = args.num_classes
 
+    root_dir = args.root_dir
+    
     mode = args.mode
 
-    train_dataset = CityScapes(mode)
+    train_dataset = CityScapes(root_dir=root_dir, mode=mode)
     dataloader_train = DataLoader(train_dataset,
                     batch_size=args.batch_size,
                     shuffle=False,
