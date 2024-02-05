@@ -3,10 +3,10 @@
 import os
 from PIL import Image
 from torch.utils.data import Dataset
-
+from torchvision import transforms
 
 def pil_loader(path):
-    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
+    # open path as file to avoid ResourceWarning
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('RGB')
@@ -16,7 +16,11 @@ class CityScapes(Dataset):
     A class to represent the CityScapes dataset.
     """
     
-    def __init__(self, root_dir: str, mode: str = 'train', transforms=None, cities: list = []):
+    def __init__(self, 
+                 root_dir: str = 'Cityscapes\Cityspaces', 
+                 mode: str = 'train', 
+                 imgtransforms=transforms.Compose([transforms.PILToTensor()]),
+                 cities: list = None):
         """
         Initialize the CityScapes dataset.
 
@@ -46,7 +50,8 @@ class CityScapes(Dataset):
         assert mode in ['train', 'val'], "mode should be 'train' or 'val'"
         
         self.mode = mode
-        self.transforms = transforms
+        self.transforms = imgtransforms
+        self.labeltransform = transforms.Compose([transforms.PILToTensor()])
         self.root_dir = root_dir
         
         if cities is not None:
@@ -92,11 +97,12 @@ class CityScapes(Dataset):
         image = pil_loader(image_path)
         
         # apply the transformations, if any
+        # transformations are applied to the image only and has to contain a toTensor() transform
         if self.transforms is not None:
             image = self.transforms(image)
-        
-        label = pil_loader(label_path)
-        
+
+        label = self.labeltransform(pil_loader(label_path))
+
         return image, label
 
     def __len__(self) -> int:

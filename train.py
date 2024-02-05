@@ -127,7 +127,7 @@ def parse_args():
     parse.add_argument('--root_dir',
                        dest='root_dir',
                        type=str,
-                       default='',
+                       default='Cityscapes\Cityspaces',
     )
     
     parse.add_argument('--mode',
