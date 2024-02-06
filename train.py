@@ -105,7 +105,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device):
             torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
 
         if epoch % args.validation_step == 0 and epoch != 0:
-            precision, miou = val(args, model, dataloader_val)
+            precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
                 import os
