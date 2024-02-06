@@ -1,13 +1,13 @@
 import torch.nn as nn
 import torch
-from torch.nn import functional as F
-from PIL import Image
 import numpy as np
 import pandas as pd
 import random
 import numbers
 import torchvision
-
+import argparse
+from torch.nn import functional as F
+from PIL import Image
 
 def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
                     max_iter=300, power=0.9):
@@ -294,3 +294,108 @@ def group_weight(weight_group, module, norm_layer, lr):
 	weight_group.append(dict(params=group_decay, lr=lr))
 	weight_group.append(dict(params=group_no_decay, weight_decay=.0, lr=lr))
 	return weight_group
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Unsupported value encountered.')
+
+
+def parse_args():
+    parse = argparse.ArgumentParser()
+
+    parse.add_argument('--root_dir',
+                       dest='root_dir',
+                       type=str,
+    )
+    
+    parse.add_argument('--mode',
+                       dest='mode',
+                       type=str,
+                       default='train',
+    )
+
+    parse.add_argument('--backbone',
+                       dest='backbone',
+                       type=str,
+                       default='CatmodelSmall',
+    )
+    parse.add_argument('--pretrain_path',
+                      dest='pretrain_path',
+                      type=str,
+                      default='',
+    )
+    parse.add_argument('--use_conv_last',
+                       dest='use_conv_last',
+                       type=str2bool,
+                       default=False,
+    )
+    parse.add_argument('--num_epochs',
+                       type=int, default=300,
+                       help='Number of epochs to train for')
+    parse.add_argument('--epoch_start_i',
+                       type=int,
+                       default=0,
+                       help='Start counting epochs from this number')
+    parse.add_argument('--checkpoint_step',
+                       type=int,
+                       default=10,
+                       help='How often to save checkpoints (epochs)')
+    parse.add_argument('--validation_step',
+                       type=int,
+                       default=1,
+                       help='How often to perform validation (epochs)')
+    parse.add_argument('--crop_height',
+                       type=int,
+                       default=512,
+                       help='Height of cropped/resized input image to modelwork')
+    parse.add_argument('--crop_width',
+                       type=int,
+                       default=1024,
+                       help='Width of cropped/resized input image to modelwork')
+    parse.add_argument('--batch_size',
+                       type=int,
+                       default=2,
+                       help='Number of images in each batch')
+    parse.add_argument('--learning_rate',
+                        type=float,
+                        default=0.01,
+                        help='learning rate used for train')
+    parse.add_argument('--num_workers',
+                       type=int,
+                       default=4,
+                       help='num of workers')
+    parse.add_argument('--num_classes',
+                       type=int,
+                       default=19,
+                       help='num of object classes (with void)')
+    parse.add_argument('--cuda',
+                       type=str,
+                       default='0',
+                       help='GPU ids used for training')
+    parse.add_argument('--use_gpu',
+                       type=bool,
+                       default=True,
+                       help='whether to user gpu for training')
+    parse.add_argument('--save_model_path',
+                       type=str,
+                       default=None,
+                       help='path to save model')
+    parse.add_argument('--optimizer',
+                       type=str,
+                       default='adam',
+                       help='optimizer, support rmsprop, sgd, adam')
+    parse.add_argument('--loss',
+                       type=str,
+                       default='crossentropy',
+                       help='loss function')
+
+    parse.add_argument('--dataset',
+                       type=str,
+                       default='cityscapes',
+                       help='dataset to train on')
+
+    return parse.parse_args()

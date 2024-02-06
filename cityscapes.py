@@ -108,8 +108,6 @@ class CityScapes(Dataset):
         """returns the length of the dataset
 
         Returns:
-            int: The length of the dataset
+            int: 
         """
         return len(self.image_paths)
-
-#NOTE: maybe label transformation is needed (see stdc implementation)
