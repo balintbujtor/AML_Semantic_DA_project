@@ -1,15 +1,10 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 import os
+import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-
-def pil_loader(path):
-    # open path as file to avoid ResourceWarning
-    with open(path, 'rb') as f:
-        img = Image.open(f)
-        return img.convert('RGB')
 
 class CityScapes(Dataset):
     """
@@ -19,7 +14,7 @@ class CityScapes(Dataset):
     def __init__(self, 
                  root_dir: str = 'Cityscapes\Cityspaces', 
                  mode: str = 'train', 
-                 imgtransforms=transforms.Compose([transforms.PILToTensor()]),
+                 imgtransforms = None,
                  cities: list = None):
         """
         Initialize the CityScapes dataset.
@@ -51,8 +46,13 @@ class CityScapes(Dataset):
         
         self.mode = mode
         self.transforms = imgtransforms
-        self.labeltransform = transforms.Compose([transforms.PILToTensor()])
         self.root_dir = root_dir
+        
+        # default preprocessing to transform images and labels to tensors
+        self.to_tensor = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            ])
         
         if cities is not None:
             assert isinstance(cities, list), "cities should be a list"
@@ -91,18 +91,17 @@ class CityScapes(Dataset):
         Returns:
             tuple: The image and label
         """
-        image_path = self.image_paths[idx]
-        label_path = self.label_paths[idx]
-        
-        image = pil_loader(image_path)
-        
+        image_path = self.image_paths[idx]        
+        image = Image.open(image_path).convert('RGB')
         # apply the transformations, if any
-        # transformations are applied to the image only and has to contain a toTensor() transform
-        if self.transforms is not None:
+        if self.transforms is not None and self.mode == 'train':
             image = self.transforms(image)
+        image = self.to_tensor(image)
 
-        label = self.labeltransform(pil_loader(label_path))
-
+        label_path = self.label_paths[idx]
+        label = Image.open(label_path)
+        label = np.array(label).astype(np.int64)[np.newaxis, :]
+        
         return image, label
 
     def __len__(self) -> int:
@@ -112,3 +111,5 @@ class CityScapes(Dataset):
             int: The length of the dataset
         """
         return len(self.image_paths)
+
+#NOTE: maybe label transformation is needed (see stdc implementation)

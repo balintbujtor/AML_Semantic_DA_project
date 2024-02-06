@@ -148,8 +148,9 @@ class STDCNet813(nn.Module):
             self.init_params()
 
     def init_weight(self, pretrain_model):
-
-        state_dict = torch.load(pretrain_model)["state_dict"]
+        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        state_dict = torch.load(pretrain_model, map_location=torch.device(device))["state_dict"]
         self_state_dict = self.state_dict()
         for k, v in state_dict.items():
             self_state_dict.update({k: v})

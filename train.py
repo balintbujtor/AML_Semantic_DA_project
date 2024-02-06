@@ -12,12 +12,13 @@ import torch.cuda.amp as amp
 from utils import poly_lr_scheduler
 from utils import reverse_one_hot, compute_global_accuracy, fast_hist, per_class_iu
 from tqdm import tqdm
+from torchvision import transforms
 
 
 logger = logging.getLogger()
 
 
-def val(args, model, dataloader):
+def val(args, model, dataloader, device):
     print('start val!')
     with torch.no_grad():
         model.eval()
@@ -25,8 +26,9 @@ def val(args, model, dataloader):
         hist = np.zeros((args.num_classes, args.num_classes))
         for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
-            data = data.cuda()
-            label = label.long().cuda()
+            #maybe this is not good and cuda() is needed
+            data = data.to(device)
+            label = label.long().to(device)
 
             # get RGB predict image
             predict, _, _ = model(data)
@@ -57,7 +59,7 @@ def val(args, model, dataloader):
         return precision, miou
 
 
-def train(args, model, optimizer, dataloader_train, dataloader_val):
+def train(args, model, optimizer, dataloader_train, dataloader_val, device):
     writer = SummaryWriter(comment=''.format(args.optimizer))
 
     scaler = amp.GradScaler()
@@ -72,8 +74,8 @@ def train(args, model, optimizer, dataloader_train, dataloader_val):
         tq.set_description('epoch %d, lr %f' % (epoch, lr))
         loss_record = []
         for i, (data, label) in enumerate(dataloader_train):
-            data = data.cuda()
-            label = label.long().cuda()
+            data = data.to(device)
+            label = label.long().to(device)
             optimizer.zero_grad()
 
             with amp.autocast():
@@ -224,25 +226,28 @@ def main():
     root_dir = args.root_dir
     
     mode = args.mode
-
+    
     train_dataset = CityScapes(root_dir=root_dir, mode=mode)
     dataloader_train = DataLoader(train_dataset,
-                    batch_size=args.batch_size,
-                    shuffle=False,
-                    num_workers=args.num_workers,
-                    pin_memory=False,
-                    drop_last=True)
+                                  batch_size=args.batch_size,
+                                  shuffle=False,
+                                  num_workers=args.num_workers,
+                                  pin_memory=False,
+                                  drop_last=True)
 
     val_dataset = CityScapes(root_dir=root_dir, mode='val')
     dataloader_val = DataLoader(val_dataset,
-                       batch_size=1,
-                       shuffle=False,
-                       num_workers=args.num_workers,
-                       drop_last=False)
+                                batch_size=1,
+                                shuffle=False,
+                                num_workers=args.num_workers,
+                                drop_last=False)
 
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+    
     if torch.cuda.is_available() and args.use_gpu:
         model = torch.nn.DataParallel(model).cuda()
 
@@ -259,9 +264,9 @@ def main():
         return None
 
     ## train loop
-    train(args, model, optimizer, dataloader_train, dataloader_val)
+    train(args, model, optimizer, dataloader_train, dataloader_val, device)
     # final test
-    val(args, model, dataloader_val)
+    val(args, model, dataloader_val, device)
 
 if __name__ == "__main__":
     main()
