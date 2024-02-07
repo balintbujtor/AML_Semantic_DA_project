@@ -53,6 +53,7 @@ class CityScapes(Dataset):
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
             ])
+        # NOTE: maybe ask about whether some training preprocessing should be done here
         
         if cities is not None:
             assert isinstance(cities, list), "cities should be a list"

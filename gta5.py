@@ -65,7 +65,7 @@ class GTA5(Dataset):
         image = self.to_tensor(image)
         
         label = Image.open(self.label_paths[idx])
-        #TODO: for some reason there are images labels with values that is greater than 19
+        #TODO: for some reason there are labels with values that are greater than 19
         label = np.array(label).astype(np.int64)[np.newaxis, :]
         return (image, label)
     
