@@ -11,7 +11,7 @@ from tqdm import tqdm
 from torchvision import transforms
 from model.model_stages import BiSeNet
 from cityscapes import CityScapes
-from gta5 import GTA5
+from GTA5_dataset.dataset import GTA5
 
 logger = logging.getLogger()
 
