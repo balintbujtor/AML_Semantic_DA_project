@@ -19,7 +19,12 @@ class GTA5(torchDataset):
             self.root = root
             self.img_paths = self.create_imgpath_list()
             self.lbl_paths = self.create_lblpath_list()
-
+            
+            self.to_tensor = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            ])
+            
         def __len__(self):
             return len(self.img_paths)
 
