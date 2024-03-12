@@ -8,6 +8,8 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
 # Tables
 
+```
 +----------------+--------------+
 |                |              |
 +----------------+--------------+
+```
