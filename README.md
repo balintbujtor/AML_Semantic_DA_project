@@ -6,7 +6,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 [x] Matching label categories of GTA5 with Cityscapes
 [ ] Training NN on Cityscapes and filling out table1
 
-# Result Tables
+# Results
 
 | Experiment                    | Accuracy(%)      | mIoU(%)      | Time(avg per-epoch)      |
 |:----------------------------- |:----------------:|:------------:|:------------------------:|
