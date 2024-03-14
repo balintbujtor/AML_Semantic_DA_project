@@ -1,4 +1,3 @@
-# Semantic Segmentation
 ## About
 This project tackles Domain Adaptation applied to the Real-time Semantic Segmentation
 networks, featuring an Adversarial Domain Adaptation algorithm.
