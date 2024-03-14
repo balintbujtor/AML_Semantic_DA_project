@@ -12,7 +12,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
 ## Results
 
-| Experiment                    | Accuracy(%)      | mIoU(%)      | Time(avg per-epoch)      |
-|:----------------------------- |:----------------:|:------------:|:------------------------:|
-| Cityscapes STDC 1 - 50 epochs |                  |              |                          |
-| GTA5 STDC 1 - 50 epochs       |                  |              |                          |
+| Experiment                    | Accuracy (%)      | mIoU (%)      | Time (avg per-epoch)      |
+|:----------------------------- |:-----------------:|:-------------:|:-------------------------:|
+| Cityscapes STDC 1 - 50 epochs |                   |               |                           |
+| GTA5 STDC 1 - 50 epochs       |                   |               |                           |
