@@ -11,7 +11,10 @@ from tqdm import tqdm
 from torchvision import transforms
 from model.model_stages import BiSeNet
 from cityscapes import CityScapes
-from gta5 import GTA5
+from pytorchdl_gta5.dataset import GTA5
+from torch.utils.data.sampler import SubsetRandomSampler
+from pathlib import Path
+
 
 logger = logging.getLogger()
 
@@ -118,11 +121,13 @@ def main():
 
     ## dataset
     n_classes = args.num_classes
-
     root_dir = args.root_dir
-    
     mode = args.mode
     chosen_dataset = args.dataset
+
+    validation_split = .2
+    shuffle_dataset = True
+    random_seed = 42
     
     assert chosen_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
@@ -143,20 +148,25 @@ def main():
                                     drop_last=False)
         
     elif chosen_dataset == 'gta5':
-        train_dataset = GTA5(root_dir=root_dir, mode=mode)
-        dataloader_train = DataLoader(train_dataset,
-                                    batch_size=args.batch_size,
-                                    shuffle=False,
-                                    num_workers=args.num_workers,
-                                    pin_memory=False,
-                                    drop_last=True)
+        dataset = GTA5(root=Path(args.root_dir))
         
-        val_dataset = GTA5(root_dir=root_dir, mode='val')
-        dataloader_val = DataLoader(val_dataset,
-                                    batch_size=1,
-                                    shuffle=False,
-                                    num_workers=args.num_workers,
-                                    drop_last=False)
+        dataset_size = len(dataset)
+        indices = list(range(dataset_size))
+        split = int(np.floor(validation_split * dataset_size))
+        if shuffle_dataset :
+            np.random.seed(random_seed)
+            np.random.shuffle(indices)
+        train_indices, val_indices = indices[split:], indices[:split]
+
+        # Creating PT data samplers and loaders:
+        train_sampler = SubsetRandomSampler(train_indices)
+        valid_sampler = SubsetRandomSampler(val_indices)
+
+        dataloader_train = DataLoader(dataset, batch_size=args.batch_size, 
+                                                sampler=train_sampler)
+        dataloader_val = DataLoader(dataset, batch_size=args.batch_size,
+                                                        sampler=valid_sampler)
+
 
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
@@ -187,4 +197,4 @@ def main():
 if __name__ == "__main__":
     main()
     
-# NOTE: maybe the number of classes needs to be modified?
+# TODO: fix the dimension issue at training time
