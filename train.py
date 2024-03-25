@@ -10,8 +10,8 @@ from utils import *
 from tqdm import tqdm
 from torchvision import transforms
 from model.model_stages import BiSeNet
-from cityscapes import CityScapes
-from pytorchdl_gta5.dataset import GTA5
+from datasets.cityscapes import CityScapes
+from datasets.gta5 import GTA5
 from torch.utils.data.sampler import SubsetRandomSampler
 from pathlib import Path
 
@@ -122,17 +122,35 @@ def main():
     ## dataset
     n_classes = args.num_classes
     root_dir = args.root_dir
-    mode = args.mode
+    split = args.split
+
     chosen_dataset = args.dataset
 
     validation_split = .2
     shuffle_dataset = True
     random_seed = 42
+    CITYSCAPES_CROP = (720, 1280)
+    CITYSCAPES_MEAN = [0.485, 0.456, 0.406]
+    CITYSCAPES_STD = [0.229, 0.224, 0.225]
     
+    GTA5_CROP = (720, 1280)
     assert chosen_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
     if chosen_dataset == 'cityscapes':
-        train_dataset = CityScapes(root_dir=root_dir, mode=mode)
+        
+        std_img_transforms = transforms.Compose([
+            transforms.Resize((CITYSCAPES_CROP)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
+        ])
+        
+        std_lbl_transforms = transforms.Compose([
+            transforms.Resize((CITYSCAPES_CROP)),
+            transforms.ToTensor(),
+        ])
+        
+        train_dataset = CityScapes(root_dir=root_dir, split=split, mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+        
         dataloader_train = DataLoader(train_dataset,
                                     batch_size=args.batch_size,
                                     shuffle=False,
@@ -140,7 +158,7 @@ def main():
                                     pin_memory=False,
                                     drop_last=True)
 
-        val_dataset = CityScapes(root_dir=root_dir, mode='val')
+        val_dataset = CityScapes(root_dir=root_dir, split='val', mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         dataloader_val = DataLoader(val_dataset,
                                     batch_size=1,
                                     shuffle=False,
@@ -148,11 +166,24 @@ def main():
                                     drop_last=False)
         
     elif chosen_dataset == 'gta5':
-        dataset = GTA5(root=Path(args.root_dir))
+        
+        std_img_transforms = transforms.Compose([
+            transforms.Resize((GTA5_CROP)),
+            transforms.ToTensor(),
+            # TODO: transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
+        ])
+        
+        std_lbl_transforms = transforms.Compose([
+            transforms.Resize((GTA5_CROP)),
+            transforms.ToTensor(),
+        ])
+        
+        dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         
         dataset_size = len(dataset)
         indices = list(range(dataset_size))
         split = int(np.floor(validation_split * dataset_size))
+        
         if shuffle_dataset :
             np.random.seed(random_seed)
             np.random.shuffle(indices)
@@ -162,10 +193,20 @@ def main():
         train_sampler = SubsetRandomSampler(train_indices)
         valid_sampler = SubsetRandomSampler(val_indices)
 
-        dataloader_train = DataLoader(dataset, batch_size=args.batch_size, 
-                                                sampler=train_sampler)
-        dataloader_val = DataLoader(dataset, batch_size=args.batch_size,
-                                                        sampler=valid_sampler)
+        dataloader_train = DataLoader(dataset, 
+                                      batch_size=args.batch_size,
+                                      shuffle=False,
+                                      num_workers=args.num_workers,
+                                      pin_memory=False,
+                                      drop_last=True, 
+                                      sampler=train_sampler)
+        
+        dataloader_val = DataLoader(dataset, 
+                                    batch_size=1,
+                                    shuffle=False,
+                                    num_workers=args.num_workers,
+                                    drop_last=False,
+                                    sampler=valid_sampler)
 
 
     ## model
@@ -197,4 +238,3 @@ def main():
 if __name__ == "__main__":
     main()
     
-# TODO: fix the dimension issue at training time

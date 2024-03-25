@@ -312,8 +312,8 @@ def parse_args():
                        type=str,
     )
     
-    parse.add_argument('--mode',
-                       dest='mode',
+    parse.add_argument('--split',
+                       dest='split',
                        type=str,
                        default='train',
     )
