@@ -5,7 +5,7 @@ import numpy as np
 from collections import namedtuple
 from PIL import Image
 from torchvision.datasets.vision import VisionDataset
-from typing import Any, List, Tuple, Union
+from typing import Any, Tuple
 
 class CityScapes(VisionDataset):
     """
@@ -65,19 +65,30 @@ class CityScapes(VisionDataset):
                  root_dir: str = 'Cityscapes\Cityspaces',
                  split: str = 'train', 
                  mode: str = 'fine', 
-                 target_type: Union[List[str], str] = "semantic",
                  img_transforms = None,
                  lbl_transforms = None,
         ):
-        # TODO: Add documentation
+        """
+        Initialize the CityScapes dataset.
+
+        Args:
+            root_dir (str, optional): the root directory of the dataset. Defaults to 'Cityscapes\Cityspaces'.
+            split (str, optional): train test or validation split. Defaults to 'train'.
+            mode (str, optional): whether to use fine or coarse annotation. Defaults to 'fine'.
+            img_transforms (_type_, optional): transformation to perform on the image before the training step. Defaults to None.
+            lbl_transforms (_type_, optional): same but on labels (usually only type change, no augmentation). Defaults to None.
+
+        Raises:
+            NotImplementedError: coarse mode is not implemented
+        """
+        # FIXME: the mode might not be needed if coarse is never going to be used
         
         super(CityScapes, self).__init__()
 
-        assert split in ['train', 'val', 'test'], "split should be 'train' , 'test' or 'val'"
+        assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
         
         self.root_dir = root_dir
         self.mode = 'gtFine' if mode == 'fine' else 'gtCoarse'
-        self.target_type = target_type
         self.split = split
         self.img_transforms = img_transforms
         self.lbl_transforms = lbl_transforms
@@ -108,46 +119,6 @@ class CityScapes(VisionDataset):
                 
         assert len(self.image_paths) == len(self.label_paths), "Number of images and labels should be the same"
         print(f"Found {len(self.image_paths)} {self.mode} images")
-
-
-    def __getitem__(self, idx: int) -> tuple:
-        """Returns the image and label at the given index
-
-        Args:
-            idx (int): The index of the image and label
-
-        Returns:
-            tuple: The image and label
-        """
-        image = Image.open(self.image_paths[idx]).convert('RGB')
-        # apply the transformations, if any
-        label = Image.open(self.label_paths[idx])
-
-        if self.img_transforms is not None:
-            image = self.img_transforms(image)
-        
-        if self.lbl_transforms is not None:   
-            label = self.lbl_transforms(label)
-        
-        return image, label
-
-    def __len__(self) -> int:
-        """returns the length of the dataset
-
-        Returns:
-            int: 
-        """
-        return len(self.image_paths)
-    
-    def _get_target_suffix(self, mode: str, target_type: str) -> str:
-        if target_type == "instance":
-            return f"{mode}_instanceIds.png"
-        elif target_type == "semantic":
-            return f"{mode}_labelTrainIds.png"
-        elif target_type == "color":
-            return f"{mode}_color.png"
-        else:
-            return f"{mode}_polygons.json"
     
     @classmethod
     def encode_target(cls, target):
