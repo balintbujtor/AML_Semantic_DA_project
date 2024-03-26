@@ -118,8 +118,48 @@ class CityScapes(VisionDataset):
 
                 
         assert len(self.image_paths) == len(self.label_paths), "Number of images and labels should be the same"
-        print(f"Found {len(self.image_paths)} {self.mode} images")
+        print(f"Found {len(self.image_paths)} {self.mode} images for {self.split}")
+
+    def __getitem__(self, idx: int) -> tuple:
+        """Returns the image and label at the given index
+
+        Args:
+            idx (int): The index of the image and label
+
+        Returns:
+            tuple: The image and label
+        """
+        image = Image.open(self.image_paths[idx]).convert('RGB')
+        # apply the transformations, if any
+        label = Image.open(self.label_paths[idx])
+
+        if self.img_transforms is not None:
+            image = self.img_transforms(image)
+        
+        if self.lbl_transforms is not None:   
+            label = self.lbl_transforms(label)
+        
+        return image, label
+
+    def __len__(self) -> int:
+        """returns the length of the dataset
+
+        Returns:
+            int: 
+        """
+        return len(self.image_paths)
     
+    def _get_target_suffix(self, mode: str, target_type: str) -> str:
+        if target_type == "instance":
+            return f"{mode}_instanceIds.png"
+        elif target_type == "semantic":
+            return f"{mode}_labelTrainIds.png"
+        elif target_type == "color":
+            return f"{mode}_color.png"
+        else:
+            return f"{mode}_polygons.json"
+        
+          
     @classmethod
     def encode_target(cls, target):
         return cls.id_to_train_id[np.array(target)]
