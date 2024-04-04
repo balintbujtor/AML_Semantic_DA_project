@@ -399,3 +399,6 @@ def parse_args():
                        help='dataset to train on')
 
     return parse.parse_args()
+
+def to_float(x):
+    return x.float()

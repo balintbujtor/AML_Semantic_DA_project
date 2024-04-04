@@ -32,13 +32,13 @@ def main():
         
         std_img_transforms = transforms.Compose([
             transforms.Resize((CITYSCAPES_CROP)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
+            transforms.PILToTensor(),
+            transforms.Lambda(to_float),
         ])
         
         std_lbl_transforms = transforms.Compose([
             transforms.Resize((CITYSCAPES_CROP)),
-            transforms.ToTensor(),
+            transforms.PILToTensor(),    
         ])
         
         train_dataset = CityScapes(root_dir=root_dir, split=split, mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
@@ -61,13 +61,12 @@ def main():
         
         std_img_transforms = transforms.Compose([
             transforms.Resize((GTA5_CROP)),
-            transforms.ToTensor(),
-            # TODO: transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
+            transforms.PILToTensor(),
         ])
         
         std_lbl_transforms = transforms.Compose([
             transforms.Resize((GTA5_CROP)),
-            transforms.ToTensor(),
+            transforms.PILToTensor(),
         ])
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
@@ -131,4 +130,5 @@ if __name__ == "__main__":
     main()
     
     #TODO: run on colab
+    #TODO: investigate the 0 mIoU accuracy
     
