@@ -348,14 +348,6 @@ def parse_args():
                        type=int,
                        default=1,
                        help='How often to perform validation (epochs)')
-    parse.add_argument('--crop_height',
-                       type=int,
-                       default=512,
-                       help='Height of cropped/resized input image to modelwork')
-    parse.add_argument('--crop_width',
-                       type=int,
-                       default=1024,
-                       help='Width of cropped/resized input image to modelwork')
     parse.add_argument('--batch_size',
                        type=int,
                        default=2,
