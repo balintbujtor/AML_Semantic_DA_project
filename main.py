@@ -21,24 +21,26 @@ def main():
     validation_split = .2
     shuffle_dataset = True
     random_seed = 42
-    CITYSCAPES_CROP = (720, 1280)
+    CITYSCAPES_CROP = (512, 1024)
     CITYSCAPES_MEAN = [0.485, 0.456, 0.406]
     CITYSCAPES_STD = [0.229, 0.224, 0.225]
     
-    GTA5_CROP = (720, 1280)
+    GTA5_CROP = (526,957)
     assert chosen_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
     if chosen_dataset == 'cityscapes':
         
         std_img_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP)),
-            transforms.PILToTensor(),
-            transforms.Lambda(to_float),
+            transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
         ])
         
+        # Image.NEAREST s.t. the label values are kept
+        # PILToTensor() to avoid normalizing into (0,1)
         std_lbl_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP)),
-            transforms.PILToTensor(),    
+            transforms.Resize((CITYSCAPES_CROP),Image.NEAREST),
+            transforms.PILToTensor(),
         ])
         
         train_dataset = CityScapes(root_dir=root_dir, split=split, mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
