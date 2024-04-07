@@ -11,21 +11,22 @@ from train import train, val
 def main():
     args = parse_args()
 
-    ## dataset
     n_classes = args.num_classes
     root_dir = args.root_dir
     split = args.split
-
     chosen_dataset = args.dataset
 
     validation_split = .2
     shuffle_dataset = True
     random_seed = 42
-    CITYSCAPES_CROP = (512, 1024)
-    CITYSCAPES_MEAN = [0.485, 0.456, 0.406]
-    CITYSCAPES_STD = [0.229, 0.224, 0.225]
     
+    CITYSCAPES_CROP = (512, 1024)
     GTA5_CROP = (526,957)
+    
+    # Imagenet mean and std
+    MEAN = [0.485, 0.456, 0.406]
+    STD = [0.229, 0.224, 0.225]
+    
     assert chosen_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
     if chosen_dataset == 'cityscapes':
@@ -33,7 +34,7 @@ def main():
         std_img_transforms = transforms.Compose([
             transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
             transforms.ToTensor(),
-            transforms.Normalize(mean=CITYSCAPES_MEAN, std=CITYSCAPES_STD),
+            transforms.Normalize(mean=MEAN, std=STD),
         ])
         
         # Image.NEAREST s.t. the label values are kept
@@ -62,12 +63,13 @@ def main():
     elif chosen_dataset == 'gta5':
         
         std_img_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP)),
-            transforms.PILToTensor(),
+            transforms.Resize((GTA5_CROP), Image.BILINEAR),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=MEAN, std=STD),
         ])
         
         std_lbl_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP)),
+            transforms.Resize((GTA5_CROP), Image.NEAREST),
             transforms.PILToTensor(),
         ])
         
@@ -132,5 +134,4 @@ if __name__ == "__main__":
     main()
     
     #TODO: run on colab
-    #TODO: investigate the 0 mIoU accuracy
     
