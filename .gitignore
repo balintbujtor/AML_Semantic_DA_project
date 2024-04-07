@@ -11,3 +11,4 @@
 /Cityscapes/
 /runs/
 /GTA5/
+*.pyc
