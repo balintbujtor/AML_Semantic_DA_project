@@ -137,6 +137,7 @@ class GTA5(torchDataset):
         img = self.read_img(img_path)
         lbl = self.read_img(lbl_path)
         
+        # IMPORTANT to convert to trainId to match with the Cityscapes labels
         lbl = Image.fromarray(np.array(self.convert_to_trainId(lbl),dtype='uint8'))
 
         if self.img_transforms is not None:

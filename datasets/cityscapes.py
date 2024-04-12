@@ -64,7 +64,6 @@ class CityScapes(VisionDataset):
     def __init__(self, 
                  root_dir: str = 'Cityscapes\Cityspaces',
                  split: str = 'train', 
-                 mode: str = 'fine', 
                  img_transforms = None,
                  lbl_transforms = None,
         ):
@@ -74,32 +73,24 @@ class CityScapes(VisionDataset):
         Args:
             root_dir (str, optional): the root directory of the dataset. Defaults to 'Cityscapes\Cityspaces'.
             split (str, optional): train test or validation split. Defaults to 'train'.
-            mode (str, optional): whether to use fine or coarse annotation. Defaults to 'fine'.
             img_transforms (_type_, optional): transformation to perform on the image before the training step. Defaults to None.
             lbl_transforms (_type_, optional): same but on labels (usually only type change, no augmentation). Defaults to None.
 
-        Raises:
-            NotImplementedError: coarse mode is not implemented
         """
-        # FIXME: the mode might not be needed if coarse is never going to be used
         
         super(CityScapes, self).__init__()
 
         assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
         
         self.root_dir = root_dir
-        self.mode = 'gtFine' if mode == 'fine' else 'gtCoarse'
         self.split = split
         self.img_transforms = img_transforms
         self.lbl_transforms = lbl_transforms
 
-        if self.mode == 'gtCoarse':
-            raise NotImplementedError("Coarse mode is not implemented yet")
-        
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
         self.image_dir = os.path.join(self.root_dir, 'images', self.split)
-        self.label_dir = os.path.join(self.root_dir, self.mode, self.split)
+        self.label_dir = os.path.join(self.root_dir, 'fine', self.split)
 
         self.image_paths = []
         self.label_paths = []
@@ -118,7 +109,7 @@ class CityScapes(VisionDataset):
 
                 
         assert len(self.image_paths) == len(self.label_paths), "Number of images and labels should be the same"
-        print(f"Found {len(self.image_paths)} {self.mode} images for {self.split}")
+        print(f"Found {len(self.image_paths)} images for {self.split}")
 
     def __getitem__(self, idx: int) -> tuple:
         """Returns the image and label at the given index
@@ -130,7 +121,6 @@ class CityScapes(VisionDataset):
             tuple: The image and label
         """
         image = Image.open(self.image_paths[idx]).convert('RGB')
-        # apply the transformations, if any
         label = Image.open(self.label_paths[idx])
 
         if self.img_transforms is not None:
@@ -149,29 +139,46 @@ class CityScapes(VisionDataset):
         """
         return len(self.image_paths)
     
-    def _get_target_suffix(self, mode: str, target_type: str) -> str:
-        if target_type == "instance":
-            return f"{mode}_instanceIds.png"
-        elif target_type == "semantic":
-            return f"{mode}_labelTrainIds.png"
-        elif target_type == "color":
-            return f"{mode}_color.png"
-        else:
-            return f"{mode}_polygons.json"
-        
-          
+    
     @classmethod
     def encode_target(cls, target):
+        """Encodes the target to the train_id
+
+        Args:
+            target (int): the target to encode
+
+        Returns:
+            int: encoded target, aka train_id
+        """
         return cls.id_to_train_id[np.array(target)]
+
 
     @classmethod
     def decode_target(cls, target):
+        """Decodes the target from train_id to color
+
+        Args:
+            target (int): the train_id to decode
+
+        Returns:
+            _type_: decoded train_id to color
+        """
         target[target == 255] = 19
         #target = target.astype('uint8') + 1
         return cls.train_id_to_color[target]
 
+
     @classmethod 
     def visualize_prediction(cls,outputs,labels) -> Tuple[Any, Any]:
+        """Visualizes the predictions
+
+        Args:
+            outputs (_type_): the image that the net generated
+            labels (_type_): the corresponding, correct label
+
+        Returns:
+            Tuple[Any, Any]: The colorized predictions and the colorized labels
+        """
         preds = outputs.max(1)[1].detach().cpu().numpy()
         lab = labels.detach().cpu().numpy()
         colorized_preds = cls.decode_target(preds).astype('uint8') # To RGB images, (N, H, W, 3), ranged 0~255, numpy array

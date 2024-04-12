@@ -44,16 +44,16 @@ def main():
             transforms.PILToTensor(),
         ])
         
-        train_dataset = CityScapes(root_dir=root_dir, split=split, mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+        train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         
         dataloader_train = DataLoader(train_dataset,
                                     batch_size=args.batch_size,
-                                    shuffle=False,
+                                    shuffle=True,
                                     num_workers=args.num_workers,
                                     pin_memory=False,
                                     drop_last=True)
 
-        val_dataset = CityScapes(root_dir=root_dir, split='val', mode='fine', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+        val_dataset = CityScapes(root_dir=root_dir, split='val', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         dataloader_val = DataLoader(val_dataset,
                                     batch_size=1,
                                     shuffle=False,
@@ -90,7 +90,7 @@ def main():
 
         dataloader_train = DataLoader(dataset, 
                                       batch_size=args.batch_size,
-                                      shuffle=False,
+                                      shuffle=True,
                                       num_workers=args.num_workers,
                                       pin_memory=False,
                                       drop_last=True, 
@@ -117,10 +117,13 @@ def main():
     # build optimizer
     if args.optimizer == 'rmsprop':
         optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
+        
     elif args.optimizer == 'sgd':
         optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=1e-4)
+        
     elif args.optimizer == 'adam':
         optimizer = torch.optim.Adam(model.parameters(), args.learning_rate)
+        
     else:  # rmsprop
         print('not supported optimizer \n')
         return None
@@ -132,6 +135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-    #TODO: run on colab
-    
+        
