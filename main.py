@@ -7,6 +7,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from utils import *
 from train import train, val
+import os
 
 def main():
     args = parse_args()
@@ -19,6 +20,13 @@ def main():
     validation_split = .2
     shuffle_dataset = True
     random_seed = 42
+
+    np.random.seed(random_seed)
+    os.environ['SEED'] = str(random_seed)
+    os.environ['PYTHONHASHSEED'] = str(random_seed)
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
     
     CITYSCAPES_CROP = (512, 1024)
     GTA5_CROP = (526,957)
@@ -80,7 +88,6 @@ def main():
         split = int(np.floor(validation_split * dataset_size))
         
         if shuffle_dataset :
-            np.random.seed(random_seed)
             np.random.shuffle(indices)
         train_indices, val_indices = indices[split:], indices[:split]
 
