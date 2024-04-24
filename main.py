@@ -1,3 +1,4 @@
+from numpy import False_
 from torchvision import transforms
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
@@ -97,7 +98,7 @@ def main():
 
         dataloader_train = DataLoader(dataset, 
                                       batch_size=args.batch_size,
-                                      shuffle=True,
+                                      shuffle=False,
                                       num_workers=args.num_workers,
                                       pin_memory=False,
                                       drop_last=True, 
