@@ -6,7 +6,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from pathlib import Path
 from torch.utils.data import DataLoader
 from utils import *
-from train import train, val
+from AML_Semantic_DA_project.trainings.train_1 import train, val
 
 def main():
     args = parse_args()

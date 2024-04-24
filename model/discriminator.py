@@ -37,8 +37,10 @@ class Discriminator(nn.Module):
 
 		return x
 	
-	## I don't understand what for
+	## I don't understand what for -- So This is to decide wether we want to train the discriminator or not
+	## intead I did it in the code of the training
 	def train_params(self, requires_grad=True):
     	# Function to set requires_grad attribute of parameters for training
     		for param in self.parameters():
         		param.requires_grad = requires_grad
+	
