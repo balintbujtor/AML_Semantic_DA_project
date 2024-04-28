@@ -40,9 +40,8 @@ def main():
     MEAN = [0.485, 0.456, 0.406]
     STD = [0.229, 0.224, 0.225]
     
-    if not val_only:
-        assert train_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
-    assert val_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
+    assert train_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
+    assert val_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
     
     #Loads cityscapes if it's used in train or val
     if train_dataset == 'cityscapes' or val_dataset == 'cityscapes':
