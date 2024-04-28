@@ -19,7 +19,7 @@ def main():
 
     train_dataset = args.training_dataset
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
-    val_only = args.validation_only
+    val_only = True if args.validation_only else False
 
     validation_split = .2
     shuffle_dataset = True
