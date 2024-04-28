@@ -407,6 +407,7 @@ def parse_args():
 	
     parse.add_argument('--validation_only',
 					type=bool,
+					action = 'store_true',
 					default=False,
 					help='Skip training and perform validation directly.')
 	

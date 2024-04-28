@@ -40,8 +40,8 @@ def main():
     MEAN = [0.485, 0.456, 0.406]
     STD = [0.229, 0.224, 0.225]
     
-
-    assert train_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
+    if not val_only:
+        assert train_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     assert val_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
     #Loads cityscapes if it's used in train or val
@@ -153,7 +153,7 @@ def main():
         optimizer = torch.optim.Adam(model.parameters(), args.learning_rate)
         
     else:  # rmsprop
-        print('not supported optimizer \n')
+        print('Optimizer not supported \n')
         return None
 
     if val_only:
