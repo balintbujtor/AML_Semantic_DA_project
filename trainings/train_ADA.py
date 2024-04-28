@@ -9,7 +9,7 @@ from tensorboardX import SummaryWriter
 from utils import *
 import torch.nn.functional as F
 from tqdm import tqdm
-
+from AML_Semantic_DA_project.trainings.train_ADA import Discriminator
 
 logger = logging.getLogger()
 
@@ -63,7 +63,7 @@ def val(args, model, dataloader, device):
     # We validate only on Cityscapes
 
 
-def train_ADA(args, model, optimizer, disc_model, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
+def train_ADA(args, model, optimizer,  disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
     
     # constants
     Lambda_adv = 0.0002
@@ -89,6 +89,10 @@ def train_ADA(args, model, optimizer, disc_model, disc_optimizer, dataloader_sou
 
     max_miou = 0
     step = 0
+
+    ## Initialize discriminator
+    disc_model = torch.nn.DataParallel(Discriminator(num_classes=args.num_classes)).cuda() 
+    disc_optimizer.zero_grad()
     
     for epoch in range(args.epoch_start_i, args.num_epochs):
         lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
@@ -120,7 +124,7 @@ def train_ADA(args, model, optimizer, disc_model, disc_optimizer, dataloader_sou
             ## before computing the gradients for the current batch, 
             ## as you don't want gradients from previous iterations affecting the current iteration.
             optimizer.zero_grad()
-            disc_optimizer.zero_grad()
+           
             
             # Train segmentation
             
