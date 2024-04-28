@@ -7,8 +7,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from pathlib import Path
 from torch.utils.data import DataLoader
 from utils import *
-from train import train, val
 import os
+from trainings.train_1 import train, val
 
 def main():
     args = parse_args()
