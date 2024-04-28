@@ -309,85 +309,106 @@ def parse_args():
 
     parse.add_argument('--root_dir',
                        dest='root_dir',
-                       type=str,
-    )
+                       type=str)
     
     parse.add_argument('--split',
                        dest='split',
                        type=str,
-                       default='train',
-    )
+                       default='train')
 
     parse.add_argument('--backbone',
                        dest='backbone',
                        type=str,
-                       default='CatmodelSmall',
-    )
+                       default='CatmodelSmall')
+	
     parse.add_argument('--pretrain_path',
                       dest='pretrain_path',
                       type=str,
-                      default='',
-    )
+                      default='')
+	
     parse.add_argument('--use_conv_last',
                        dest='use_conv_last',
                        type=str2bool,
-                       default=False,
-    )
+                       default=False)
+	
     parse.add_argument('--num_epochs',
                        type=int, default=300,
                        help='Number of epochs to train for')
+	
     parse.add_argument('--epoch_start_i',
                        type=int,
                        default=0,
                        help='Start counting epochs from this number')
+	
     parse.add_argument('--checkpoint_step',
                        type=int,
                        default=10,
                        help='How often to save checkpoints (epochs)')
+	
     parse.add_argument('--validation_step',
                        type=int,
                        default=1,
                        help='How often to perform validation (epochs)')
+	
     parse.add_argument('--batch_size',
                        type=int,
                        default=2,
                        help='Number of images in each batch')
+	
     parse.add_argument('--learning_rate',
                         type=float,
                         default=0.01,
                         help='learning rate used for train')
+	
     parse.add_argument('--num_workers',
                        type=int,
                        default=4,
                        help='num of workers')
+	
     parse.add_argument('--num_classes',
                        type=int,
                        default=19,
                        help='num of object classes (with void)')
+	
     parse.add_argument('--cuda',
                        type=str,
                        default='0',
                        help='GPU ids used for training')
+	
     parse.add_argument('--use_gpu',
                        type=bool,
                        default=True,
                        help='whether to user gpu for training')
+	
     parse.add_argument('--save_model_path',
                        type=str,
                        default=None,
                        help='path to save model')
+	
     parse.add_argument('--optimizer',
                        type=str,
                        default='adam',
                        help='optimizer, support rmsprop, sgd, adam')
+	
     parse.add_argument('--loss',
                        type=str,
                        default='crossentropy',
                        help='loss function')
-
-    parse.add_argument('--dataset',
+	
+    parse.add_argument('--training_dataset',
                        type=str,
-                       default='cityscapes',
+					   default='',
                        help='dataset to train on')
 
+    parse.add_argument('--validation_dataset',
+                       type=str,
+                       default='',
+                       help='dataset to validate on. If not defined, equals training dataset.')
+	
+    parse.add_argument('--validation_only',
+					type=bool,
+					default=False,
+					help='Skip training and perform validation directly.')
+	
+	
     return parse.parse_args()
