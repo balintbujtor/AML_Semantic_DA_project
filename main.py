@@ -14,7 +14,7 @@ def main():
     args = parse_args()
 
     n_classes = args.num_classes
-    root_dir = args.root_dir
+    root_dir = args.root_dir #currently useless, to reimplement to match new structure
     split = args.split
 
     train_dataset = args.training_dataset
@@ -47,6 +47,7 @@ def main():
     #Loads cityscapes if it's used in train or val
     if train_dataset == 'cityscapes' or val_dataset == 'cityscapes':
         print("Cityscapes loaded.")
+        root_dir="Cityscapes/Cityspaces/"
         
         std_img_transforms = transforms.Compose([
             transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
@@ -83,7 +84,8 @@ def main():
     #Loads gta5 if it's used in train or val        
     elif train_dataset == 'gta5' or val_dataset == 'gta5':
         print("Gta5 loaded.")
-        
+        root_dir="GTA5"
+
         std_img_transforms = transforms.Compose([
             transforms.Resize((GTA5_CROP), Image.BILINEAR),
             transforms.ToTensor(),
