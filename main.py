@@ -46,6 +46,7 @@ def main():
     
     #Loads cityscapes if it's used in train or val
     if train_dataset == 'cityscapes' or val_dataset == 'cityscapes':
+        print("Cityscapes loaded.")
         
         std_img_transforms = transforms.Compose([
             transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
@@ -61,6 +62,7 @@ def main():
         ])
         
         if train_dataset == 'cityscapes':
+            print("dataloader_train is on cityscapes")
             train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
             dataloader_train = DataLoader(train_dataset,
                                         batch_size=args.batch_size,
@@ -70,6 +72,7 @@ def main():
                                         drop_last=True)
 
         if val_dataset == 'cityscapes':
+            print("dataloader_val is on cityscapes")
             val_dataset = CityScapes(root_dir=root_dir, split='val', img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
             dataloader_val = DataLoader(val_dataset,
                                         batch_size=1,
@@ -79,6 +82,7 @@ def main():
 
     #Loads gta5 if it's used in train or val        
     elif train_dataset == 'gta5' or val_dataset == 'gta5':
+        print("Gta5 loaded.")
         
         std_img_transforms = transforms.Compose([
             transforms.Resize((GTA5_CROP), Image.BILINEAR),
@@ -107,6 +111,7 @@ def main():
 
         # Setting the dataloaders
         if train_dataset == 'gta5':
+            print("dataloader_train is on gta5")
             dataloader_train = DataLoader(dataset, 
                                         batch_size=args.batch_size,
                                         shuffle=False,
@@ -116,6 +121,7 @@ def main():
                                         sampler=train_sampler)
 
         if val_dataset == 'gta5':
+            print("dataloader_val is on gta5")
             dataloader_val = DataLoader(dataset, 
                                         batch_size=1,
                                         shuffle=False,
