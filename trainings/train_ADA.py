@@ -63,7 +63,7 @@ def val(args, model, dataloader, device):
     # We validate only on Cityscapes
 
 
-def train_ADA(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
+def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
     
     # constants
     Lambda_adv = 0.0002
