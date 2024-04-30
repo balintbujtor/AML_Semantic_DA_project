@@ -8,7 +8,9 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from utils import *
 import os
-from trainings.train_1 import train, val
+import trainings.train_1 as train_1
+import trainings.train_ADA as train_ADA
+
 
 def main():
     args = parse_args()
@@ -18,6 +20,7 @@ def main():
     split = args.split
 
     train_dataset = args.training_dataset
+    target_dataset = args.target_dataset 
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = args.validation_only
 
@@ -42,10 +45,11 @@ def main():
     
 
     assert train_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
+    assert target_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     assert val_dataset in ['cityscapes', 'gta5'], "Dataset not supported"
     
     #Loads cityscapes if it's used in train or val
-    if train_dataset == 'cityscapes' or val_dataset == 'cityscapes':
+    if 'cityscapes' in (train_dataset,val_dataset, target_dataset):
         print("Cityscapes loaded.")
         root_dir="Cityscapes/Cityspaces/"
         
@@ -71,6 +75,16 @@ def main():
                                         num_workers=args.num_workers,
                                         pin_memory=False,
                                         drop_last=True)
+            
+        if target_dataset == 'cityscapes':
+            print("dataloader_target is on cityscapes")
+            target_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+            dataloader_target = DataLoader(target_dataset,
+                                        batch_size=args.batch_size,
+                                        shuffle=True,
+                                        num_workers=args.num_workers,
+                                        pin_memory=False,
+                                        drop_last=True)
 
         if val_dataset == 'cityscapes':
             print("dataloader_val is on cityscapes")
@@ -82,7 +96,7 @@ def main():
                                         drop_last=False)
 
     #Loads gta5 if it's used in train or val        
-    elif train_dataset == 'gta5' or val_dataset == 'gta5':
+    elif 'gta5' in (train_dataset,val_dataset, target_dataset):
         print("Gta5 loaded.")
         root_dir="GTA5"
 
@@ -115,6 +129,16 @@ def main():
         if train_dataset == 'gta5':
             print("dataloader_train is on gta5")
             dataloader_train = DataLoader(dataset, 
+                                        batch_size=args.batch_size,
+                                        shuffle=False,
+                                        num_workers=args.num_workers,
+                                        pin_memory=False,
+                                        drop_last=True, 
+                                        sampler=train_sampler)
+            
+        if target_dataset == 'gta5':
+            print("dataloader_target is on gta5")
+            dataloader_target = DataLoader(dataset, 
                                         batch_size=args.batch_size,
                                         shuffle=False,
                                         num_workers=args.num_workers,
@@ -155,14 +179,22 @@ def main():
     else:  # rmsprop
         print('not supported optimizer \n')
         return None
+    
+    if args.training_method == 'train_ADA':
+        if val_only:
+            train_ADA.val(args, model, dataloader_val, device)    
+        else: 
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device)      ## train loop
+            train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
 
-    if val_only:
-        val(args, model, dataloader_val, device)
-    else:
-        ## train loop
-        train(args, model, optimizer, dataloader_train, dataloader_val, device)
-        # final test
-        val(args, model, dataloader_val, device)
+    else: #
+        if val_only:
+            train_1.val(args, model, dataloader_val, device)
+        else:
+            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device)        ## train loop
+            train_1.val(args, model, dataloader_val, device)                                        # final test
+
+
 
 if __name__ == "__main__":
     main()

@@ -390,6 +390,11 @@ def parse_args():
                        default='adam',
                        help='optimizer, support rmsprop, sgd, adam')
 	
+    parse.add_argument('--disc_optimizer',
+				type=str,
+				default='adam',
+				help='disc_optimizer, support rmsprop, sgd, adam')
+
     parse.add_argument('--loss',
                        type=str,
                        default='crossentropy',
@@ -400,6 +405,11 @@ def parse_args():
 					   default='',
                        help='dataset to train on')
 
+    parse.add_argument('--target_dataset',
+                       type=str,
+                       default='',
+                       help='dataset to validate on. If not defined, equals training dataset.')
+
     parse.add_argument('--validation_dataset',
                        type=str,
                        default='',
@@ -409,6 +419,11 @@ def parse_args():
 					type=bool,
 					default=False,
 					help='Skip training and perform validation directly.')
+
+    parse.add_argument('--training_method',
+                       type=str,
+                       default='train_1',
+                       help='Method to call for training, either train_1 or train_ADA.')
 	
 	
     return parse.parse_args()
