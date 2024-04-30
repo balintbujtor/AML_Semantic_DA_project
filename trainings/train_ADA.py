@@ -113,11 +113,14 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         disc_loss_record = []
         
         # TODO # softmax?
+        label_source = 0
+        label_target = 1
+
 
         for i, (data_source, data_target) in enumerate(zip(dataloader_source, dataloader_target)):
-            data_source, label_source = data_source
+            data_source, label = data_source
             data_source = data_source.cuda()
-            label_source = label_source.long().cuda()
+            label = label.long().cuda()
 
 
             ## clearing the gradients of all optimized variables. This is necessary 
@@ -138,9 +141,9 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 source_output, source_out16, source_out32 = model(data_source)
                 target_output, _, _ = model(data_target)
                 
-                loss1 = loss_func(source_output, label_source.squeeze(1))
-                loss2 = loss_func(source_out16, label_source.squeeze(1))
-                loss3 = loss_func(source_out32, label_source.squeeze(1))
+                loss1 = loss_func(source_output, label.squeeze(1))
+                loss2 = loss_func(source_out16, label.squeeze(1))
+                loss3 = loss_func(source_out32, label.squeeze(1))
                 loss_segmentation = loss1 + loss2 + loss3
                 loss = loss_segmentation
 
