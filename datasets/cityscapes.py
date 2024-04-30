@@ -90,7 +90,7 @@ class CityScapes(VisionDataset):
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
         self.image_dir = os.path.join(self.root_dir, 'images', self.split)
-        self.label_dir = os.path.join(self.root_dir, 'fine', self.split)
+        self.label_dir = os.path.join(self.root_dir, 'gtFine', self.split)
 
         self.image_paths = []
         self.label_paths = []

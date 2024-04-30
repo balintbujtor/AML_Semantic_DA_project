@@ -416,8 +416,7 @@ def parse_args():
                        help='dataset to validate on. If not defined, equals training dataset.')
 	
     parse.add_argument('--validation_only',
-					type=bool,
-					default=False,
+					action = 'store_true',
 					help='Skip training and perform validation directly.')
 
     parse.add_argument('--training_method',
