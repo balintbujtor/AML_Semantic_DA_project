@@ -9,7 +9,7 @@ from tensorboardX import SummaryWriter
 from utils import *
 import torch.nn.functional as F
 from tqdm import tqdm
-from AML_Semantic_DA_project.trainings.train_ADA import Discriminator
+from model.discriminator import Discriminator
 
 logger = logging.getLogger()
 
@@ -63,7 +63,7 @@ def val(args, model, dataloader, device):
     # We validate only on Cityscapes
 
 
-def train_ADA(args, model, optimizer,  disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
+def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
     
     # constants
     Lambda_adv = 0.0002
