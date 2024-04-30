@@ -177,12 +177,27 @@ def main():
     else:  # rmsprop
         print('Optimizer not supported \n')
         return None
-    
+
+# build disc_optimizer
+    if args.disc_optimizer == 'rmsprop':
+        disc_optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
+        
+    elif args.disc_optimizer == 'sgd':
+        disc_optimizer = torch.optim.SGD(model.parameters(), args.learning_rate, momentum=0.9, weight_decay=1e-4)
+        
+    elif args.disc_optimizer == 'adam':
+        disc_optimizer = torch.optim.Adam(model.parameters(), args.learning_rate)
+        
+    else:  # rmsprop
+        print('Optimizer not supported \n')
+        return None
+
+
     if args.training_method == 'train_ADA':
         if val_only:
             train_ADA.val(args, model, dataloader_val, device)    
         else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device)      ## train loop
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device)      ## train loop
             train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
 
     else: #
