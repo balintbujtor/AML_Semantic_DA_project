@@ -83,8 +83,8 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
     
     ## loss function for the discriminator
-    adv_loss_func  = torch.nn.BCEWithLogisticLoss()
-    disc_loss_func = torch.nn.BCEWithLogisticLoss()
+    adv_loss_func  = torch.nn.BCEWithLogitsLoss()
+    disc_loss_func = torch.nn.BCEWithLogitsLoss()
 
 
     max_miou = 0
