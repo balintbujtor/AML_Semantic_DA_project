@@ -119,6 +119,9 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             data_source = data_source.cuda()
             label_source = label_source.long().cuda()
 
+            #data_target, label_target = data_target # we'll see if we need those later
+            data_target = data_target.cuda()
+            #label_target = label_target.long().cuda() #  we'll see if we need those later
 
             ## clearing the gradients of all optimized variables. This is necessary 
             ## before computing the gradients for the current batch, 
