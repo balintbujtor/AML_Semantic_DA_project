@@ -9,7 +9,7 @@ from tensorboardX import SummaryWriter
 from utils import *
 import torch.nn.functional as F
 from tqdm import tqdm
-from trainings.train_ADA import Discriminator
+from model.discriminator import Discriminator
 
 logger = logging.getLogger()
 
