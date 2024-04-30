@@ -94,7 +94,7 @@ def main():
                                         drop_last=False)
 
     #Loads gta5 if it's used in train or val        
-    elif 'gta5' in (train_dataset,val_dataset, target_dataset):
+    if 'gta5' in (train_dataset,val_dataset, target_dataset):
         print("Gta5 loaded.")
         root_dir="GTA5"
 
@@ -200,7 +200,7 @@ def main():
             train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device)      ## train loop
             train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
 
-    else: #
+    else: #using standard training method
         if val_only:
             train_1.val(args, model, dataloader_val, device)
         else:
