@@ -162,7 +162,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 D_t_output = disc_model(F.softmax(target_output))
                 
                 loss_adv_target = adv_loss_func(D_t_output,
-                                                Variable(torch.FloatTensor(D_t_output.data.size()).fill_(label_source).cuda()))
+                                            torch.FloatTensor(D_t_output.data.size()).fill_(label_source).cuda())
                 
             adv_loss = Lambda_adv*loss_adv_target
                 
