@@ -182,7 +182,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             with amp.autocast():
                 D_out1_s = disc_model(F.softmax(source_output))
                 loss_D1_s = disc_loss_func(D_out1_s,
-                                          Variable(torch.FloatTensor(D_out1_s.data.size()).fill_(label_source)).cuda())
+                                          torch.FloatTensor(D_out1_s.data.size()).fill_(label_source)).cuda()
             
             scaler.scale(loss_D1_s).backward()
             scaler.step(disc_optimizer)
@@ -193,7 +193,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             with amp.autocast():
                 D_out1_t = disc_model(F.softmax(target_output))
                 loss_D1_t = disc_loss_func(D_out1_t,
-                                          Variable(torch.FloatTensor(D_out1_t.data.size()).fill_(label_source)).cuda())
+                                          torch.FloatTensor(D_out1_t.data.size()).fill_(label_source)).cuda()
             scaler.scale(loss_D1_t).backward()
             scaler.step(disc_optimizer)
             scaler.step(optimizer)
