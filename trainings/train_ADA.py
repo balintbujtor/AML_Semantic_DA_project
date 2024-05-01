@@ -180,7 +180,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
 
             ## Training on the source domain
             with amp.autocast():
-                D_out1_s = disc_model(F.softmax(source_output))
+                D_out1_s = disc_model(F.softmax(source_output)).cuda()
                 loss_D1_s = disc_loss_func(D_out1_s,
                                           torch.FloatTensor(D_out1_s.data.size()).fill_(label_source)).cuda()
             
@@ -191,7 +191,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             
             ## Training on the traget domain
             with amp.autocast():
-                D_out1_t = disc_model(F.softmax(target_output))
+                D_out1_t = disc_model(F.softmax(target_output)).cuda()
                 loss_D1_t = disc_loss_func(D_out1_t,
                                           torch.FloatTensor(D_out1_t.data.size()).fill_(label_source)).cuda()
             scaler.scale(loss_D1_t).backward()
