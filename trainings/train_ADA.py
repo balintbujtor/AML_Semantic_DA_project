@@ -78,21 +78,22 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     ## learning rate of the dsicriminator
     disc_learning_rate = args.disc_learning_rate
 
-
+    ## -- Loss functions --
     ## loss function for the segmentation model
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
-    
     ## loss function for the discriminator
     adv_loss_func  = torch.nn.BCEWithLogitsLoss()
     disc_loss_func = torch.nn.BCEWithLogitsLoss()
-
+    # Labels for disc training
+    label_source = 0
+    label_target = 1
 
     max_miou = 0
     step = 0
 
     ## Initialize discriminator
     disc_model = torch.nn.DataParallel(Discriminator(num_classes=args.num_classes)).cuda() 
-    disc_optimizer.zero_grad()
+    disc_optimizer.zero_grad() # by default we use adam for both the segmentation model and the discriminator
     
     for epoch in range(args.epoch_start_i, args.num_epochs):
         lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
@@ -110,27 +111,20 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         ## Losses for the segmentation model
         loss_record = []
         ## Losses for the discriminator model
-        disc_loss_record = []
+        # disc_loss_record = []
         
-        # TODO # softmax?
-        label_source = 0
-        label_target = 1
 
-
-        for i, (data_source, data_target) in enumerate(zip(dataloader_source, dataloader_target)):
-            data_source, label = data_source
+        for ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
             data_source = data_source.cuda()
             label = label.long().cuda()
-
-            data_target, label_target = data_target # we'll see if we need those later
             data_target = data_target.cuda()
-            label_target = label_target.long().cuda() #  we'll see if we need those later
+         
 
             ## clearing the gradients of all optimized variables. This is necessary 
             ## before computing the gradients for the current batch, 
             ## as you don't want gradients from previous iterations affecting the current iteration.
             optimizer.zero_grad()
-           
+            disc_optimizer.zero_grad() #recheck
             
             # Train segmentation
             
@@ -185,9 +179,6 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                                           torch.FloatTensor(D_out1_s.data.size()).fill_(label_source).cuda())
             
             scaler.scale(loss_D1_s).backward()
-#            scaler.step(disc_optimizer)
-#            scaler.update()
-#            disc_optimizer.zero_grad()
             
             ## Training on the traget domain
             with amp.autocast():
@@ -195,13 +186,11 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 loss_D1_t = disc_loss_func(D_out1_t,
                                           torch.FloatTensor(D_out1_t.data.size()).fill_(label_source).cuda())
             scaler.scale(loss_D1_t).backward()
+            
+            
             scaler.step(disc_optimizer)
             scaler.step(optimizer)
             scaler.update()
-
-            
-
-
        
 
             tq.update(args.batch_size)
