@@ -185,9 +185,9 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                                           torch.FloatTensor(D_out1_s.data.size()).fill_(label_source).cuda())
             
             scaler.scale(loss_D1_s).backward()
-            scaler.step(disc_optimizer)
-            scaler.update()
-            disc_optimizer.zero_grad()
+#            scaler.step(disc_optimizer)
+#            scaler.update()
+#            disc_optimizer.zero_grad()
             
             ## Training on the traget domain
             with amp.autocast():
