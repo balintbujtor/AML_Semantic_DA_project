@@ -361,7 +361,7 @@ def parse_args():
                         help='learning rate used for train')
     parse.add_argument('--disc_learning_rate',
                         type=float,
-                        default=0.01,
+                        default=0.0001,
                         help='learning rate used for train')
 	
     parse.add_argument('--num_workers',
