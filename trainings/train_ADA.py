@@ -220,11 +220,12 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
-                max_miou = miou
-                import os
+                max_miou = miou          
+                import os,datetime
                 os.makedirs(args.save_model_path, exist_ok=True)
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best.pth'))
-                torch.save(disc_model.module.state_dict(), os.path.join(args.save_model_path, 'best_disc.pth'))
+                timestamp = datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
+                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best'+timestamp+'.pth'))
+                torch.save(disc_model.module.state_dict(), os.path.join(args.save_model_path, 'best_disc'+timestamp+'.pth'))
 
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)

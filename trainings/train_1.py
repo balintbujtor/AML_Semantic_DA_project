@@ -8,9 +8,7 @@ from tensorboardX import SummaryWriter
 from utils import *
 from tqdm import tqdm
 
-
 logger = logging.getLogger()
-
 
 def val(args, model, dataloader, device):
     print('start val!')
@@ -94,17 +92,19 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device):
         writer.add_scalar('epoch/loss_epoch_train', float(loss_train_mean), epoch)
         print('loss for train : %f' % (loss_train_mean))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            import os
+            import os,datetime
             if not os.path.isdir(args.save_model_path):
                 os.mkdir(args.save_model_path)
-            torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
+            save_name = 'latest.pth'
+            torch.save(model.module.state_dict(), os.path.join(args.save_model_path, save_name))
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
-                import os
-                os.makedirs(args.save_model_path, exist_ok=True)
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best.pth'))
+            if not os.path.isdir(args.save_model_path):
+                os.mkdir(args.save_model_path)
+                save_name = 'best_' + datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
+                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, save_name))            
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
