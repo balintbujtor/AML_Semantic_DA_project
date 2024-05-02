@@ -123,11 +123,12 @@ def main():
 
         #Data augmentation
         if data_augmentation:
-            std_img_transforms = augment.ExtCompose([ augment.ExtScale(scale=0.5),
-                                                    augment.ExtRandomHorizontalFlip(),
-                                                    augment.ExtToTensor(),
-                                                    ])
-            augmented_image, augmented_label = std_img_transforms(image, label)
+            print("Unsupported atm, sorry :(")
+            #std_img_transforms = augment.ExtCompose([ augment.ExtScale(scale=0.5),
+            #                                        augment.ExtRandomHorizontalFlip(),
+            #                                        augment.ExtToTensor(),
+            #                                        ])
+            #augmented_image, augmented_label = std_img_transforms(image, label)
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         

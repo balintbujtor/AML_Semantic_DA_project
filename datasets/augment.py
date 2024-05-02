@@ -130,7 +130,7 @@ class ExtResize(ExtTransforms):
         self.interpolation = interpolation
 
     def __call__(self, img : Image, lbl : Image) -> (Image, Image):
-        return torchFunct.resize(img, self.size, self.interpolation), F.resize(lbl, self.size, Image.NEAREST)
+        return torchFunct.resize(img, self.size, self.interpolation), torchFunct.resize(lbl, self.size, Image.NEAREST)
     
 # Rescale
 class ExtScale(ExtTransforms):
