@@ -1,3 +1,4 @@
+from ast import If
 from numpy import False_
 from torchvision import transforms
 from model.model_stages import BiSeNet
@@ -10,6 +11,13 @@ from utils import *
 import os
 import trainings.train_1 as train_1
 import trainings.train_ADA as train_ADA
+from datasets.augment import ExtCompose, ExtResize, ExtToV2Tensor, torchFunct
+ 
+
+
+
+
+
 
 
 def main():
@@ -23,6 +31,8 @@ def main():
     target_dataset = args.target_dataset 
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
+
+    data_augmentation = True if args.use_augmentation else False
 
     validation_split = .2
     shuffle_dataset = True
@@ -108,6 +118,14 @@ def main():
             transforms.Resize((GTA5_CROP), Image.NEAREST),
             transforms.PILToTensor(),
         ])
+
+        #Data augmentation
+        if data_augmentation:
+            std_img_transforms = ExtCompose([ ExtScale(scale=0.5),
+            ExtRandomHorizontalFlip(),
+            ExtToTensor(),
+            ])
+        augmented_image, augmented_label = transform(image, label)
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         
