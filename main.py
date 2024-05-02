@@ -11,7 +11,7 @@ from utils import *
 import os
 import trainings.train_1 as train_1
 import trainings.train_ADA as train_ADA
-from datasets.augment import ExtCompose, ExtResize, ExtToV2Tensor, torchFunct
+import datasets.augment as augment
  
 
 
@@ -74,6 +74,8 @@ def main():
             transforms.PILToTensor(),
         ])
         
+
+
         if train_dataset == 'cityscapes':
             print("dataloader_train is on cityscapes")
             train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
@@ -121,11 +123,11 @@ def main():
 
         #Data augmentation
         if data_augmentation:
-            std_img_transforms = ExtCompose([ ExtScale(scale=0.5),
-            ExtRandomHorizontalFlip(),
-            ExtToTensor(),
-            ])
-        augmented_image, augmented_label = transform(image, label)
+            std_img_transforms = augment.ExtCompose([ augment.ExtScale(scale=0.5),
+                                                    augment.ExtRandomHorizontalFlip(),
+                                                    augment.ExtToTensor(),
+                                                    ])
+            augmented_image, augmented_label = std_img_transforms(image, label)
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         
