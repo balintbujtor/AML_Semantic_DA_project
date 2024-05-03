@@ -8,6 +8,9 @@ import torchvision
 import argparse
 from torch.nn import functional as F
 from PIL import Image
+import os 
+import datetime
+
 
 def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
                     max_iter=300, power=0.9):
@@ -303,6 +306,16 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
+
+def save_checkpoint(model, savePath=".",saveName = "checkpoint",includeTimestamp = True):
+	os.makedirs(savePath, exist_ok=True)
+	if includeTimestamp:
+		saveName = saveName + datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
+	else:
+		saveName = saveName+".pth"
+	torch.save(model.module.state_dict(), os.path.join(savePath, saveName))            
+
+	
 
 def parse_args():
     parse = argparse.ArgumentParser()

@@ -15,11 +15,6 @@ import datasets.augment as augment
  
 
 
-
-
-
-
-
 def main():
     args = parse_args()
 
