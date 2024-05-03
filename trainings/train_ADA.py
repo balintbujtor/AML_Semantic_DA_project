@@ -210,9 +210,6 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         print('loss for train : %f' % (loss_train_mean))
         
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            import os
-            if not os.path.isdir(args.save_model_path):
-                os.mkdir(args.save_model_path)
             save_checkpoint(model,args.save_model_path,'latest')
             save_checkpoint(disc_model,args.save_model_path,'latest_disc')
 
