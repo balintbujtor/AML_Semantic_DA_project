@@ -8,7 +8,6 @@ from PIL import Image
 from torch.utils.data import Dataset as torchDataset
 from datasets.cityscapes import CityScapes
 import random as rd
-import augment
 
 
 class BaseGTALabels(metaclass=ABCMeta):
