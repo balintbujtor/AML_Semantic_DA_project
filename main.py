@@ -1,6 +1,6 @@
 from ast import If
 from numpy import False_
-from torchvision import transforms
+from torchvision.transforms import v2
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
 from datasets.gta5 import GTA5
@@ -56,17 +56,17 @@ def main():
         print("Cityscapes loaded.")
         root_dir="Cityscapes/Cityspaces/"
         
-        std_img_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=MEAN, std=STD),
+        std_img_transforms = v2.Compose([
+            v2.Resize((CITYSCAPES_CROP), Image.BILINEAR),
+            v2.ToTensor(),
+            v2.Normalize(mean=MEAN, std=STD),
         ])
         
         # Image.NEAREST s.t. the label values are kept
         # PILToTensor() to avoid normalizing into (0,1)
-        std_lbl_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP),Image.NEAREST),
-            transforms.PILToTensor(),
+        std_lbl_transforms = v2.Compose([
+            v2.Resize((CITYSCAPES_CROP),Image.NEAREST),
+            v2.PILToTensor(),
         ])
         
 
@@ -113,15 +113,15 @@ def main():
 
         
         else:
-            std_img_transforms = transforms.Compose([
-                transforms.Resize((GTA5_CROP), Image.BILINEAR),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=MEAN, std=STD),
+            std_img_transforms = v2.Compose([
+                v2.Resize((GTA5_CROP), Image.BILINEAR),
+                v2.ToTensor(),
+                v2.Normalize(mean=MEAN, std=STD),
             ])
             
-            std_lbl_transforms = transforms.Compose([
-                transforms.Resize((GTA5_CROP), Image.NEAREST),
-                transforms.PILToTensor(),
+            std_lbl_transforms = v2.Compose([
+                v2.Resize((GTA5_CROP), Image.NEAREST),
+                v2.PILToTensor(),
             ])
                                                                                     
         
