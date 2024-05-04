@@ -116,21 +116,7 @@ def main():
             v2.PILToTensor(),
         ])
 
-        if train_dataset == 'gta5' and aug_method != '':     
-            aug_img_transforms = v2.Compose([
-                v2.Resize((GTA5_CROP), Image.BILINEAR),
-                augment.to_tensor,
-                v2.Normalize(mean=MEAN, std=STD),
-                augment.aug_transformations[args.augmentation]
-            ])
-            
-            aug_lbl_transforms = v2.Compose([
-                v2.Resize((GTA5_CROP), Image.NEAREST),
-                v2.PILToTensor(),
-                augment.label_transformations[args.augmentation]
-            ])
-            train_dataset = GTA5(root=Path(args.root_dir), img_transforms=aug_img_transforms, aug_transforms=std_lbl_transforms)
-                                                                           
+                                                                         
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
         
