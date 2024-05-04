@@ -7,6 +7,8 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset as torchDataset
 from datasets.cityscapes import CityScapes
+import random as rd
+import augment
 
 
 class BaseGTALabels(metaclass=ABCMeta):
@@ -123,7 +125,7 @@ class GTA5(torchDataset):
         self.root = root
         self.labels_source = labels_source
         self.img_transforms = img_transforms
-        self.lbl_transforms = lbl_transforms
+        self.lbl_transforms = lbl_transforms                      
         self.paths = self.PathPair_ImgAndLabel(root=self.root, labels_source=self.labels_source)
         
     def __len__(self):
@@ -136,6 +138,7 @@ class GTA5(torchDataset):
 
         img = self.read_img(img_path)
         lbl = self.read_img(lbl_path)
+
         
         # IMPORTANT to convert to trainId to match with the Cityscapes labels
         lbl = Image.fromarray(np.array(self.convert_to_trainId(lbl),dtype='uint8'))

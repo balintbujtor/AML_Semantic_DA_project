@@ -27,7 +27,7 @@ def main():
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
 
-    data_augmentation = True if args.use_augmentation else False
+    use_augmentation = True if args.use_augmentation else False
 
     validation_split = .2
     shuffle_dataset = True
@@ -105,25 +105,25 @@ def main():
         print("Gta5 loaded.")
         root_dir="GTA5"
 
-        std_img_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP), Image.BILINEAR),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=MEAN, std=STD),
-        ])
-        
-        std_lbl_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP), Image.NEAREST),
-            transforms.PILToTensor(),
-        ])
+        if train_dataset == 'gta5' and use_augmentation: 
+            std_img_transforms = augment.aug_transformations[args.augmentation]
+            
+            std_lbl_transforms = augment.label_transformations[args.augmentation]
 
-        #Data augmentation
-        if data_augmentation:
-            print("Unsupported atm, sorry :(")
-            #std_img_transforms = augment.ExtCompose([ augment.ExtScale(scale=0.5),
-            #                                        augment.ExtRandomHorizontalFlip(),
-            #                                        augment.ExtToTensor(),
-            #                                        ])
-            #augmented_image, augmented_label = std_img_transforms(image, label)
+
+        
+        else:
+            std_img_transforms = transforms.Compose([
+                transforms.Resize((GTA5_CROP), Image.BILINEAR),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=MEAN, std=STD),
+            ])
+            
+            std_lbl_transforms = transforms.Compose([
+                transforms.Resize((GTA5_CROP), Image.NEAREST),
+                transforms.PILToTensor(),
+            ])
+                                                                                    
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
         
