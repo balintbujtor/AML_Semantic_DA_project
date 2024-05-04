@@ -8,6 +8,9 @@ import torchvision
 import argparse
 from torch.nn import functional as F
 from PIL import Image
+import os 
+import datetime
+
 
 def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
                     max_iter=300, power=0.9):
@@ -304,6 +307,16 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
 
+def save_checkpoint(model, savePath=".",saveName = "checkpoint",includeTimestamp = True):
+	os.makedirs(savePath, exist_ok=True)
+	if includeTimestamp:
+		saveName = saveName + datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
+	else:
+		saveName = saveName+".pth"
+	torch.save(model.module.state_dict(), os.path.join(savePath, saveName))            
+
+	
+
 ## FDA
 
 def extract_ampl_phase(fft_im):
@@ -536,8 +549,9 @@ def parse_args():
                        default='train_1',
                        help='Method to call for training, either train_1 or train_ADA.')
 	
-    parse.add_argument('--use_augmentation',
-					   action = 'store_true',
-                       help='Specify if data augmentation should be performed.')
+    parse.add_argument('--aug_method',
+                       type=str,
+                       default='',
+                       help='Specify if and how data augmentation should be performed.')
 	
     return parse.parse_args()

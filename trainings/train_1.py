@@ -92,19 +92,12 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device):
         writer.add_scalar('epoch/loss_epoch_train', float(loss_train_mean), epoch)
         print('loss for train : %f' % (loss_train_mean))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            import os,datetime
-            if not os.path.isdir(args.save_model_path):
-                os.mkdir(args.save_model_path)
-            save_name = 'latest.pth'
-            torch.save(model.module.state_dict(), os.path.join(args.save_model_path, save_name))
+            save_checkpoint(model,args.save_model_path,'latest')
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
-            if not os.path.isdir(args.save_model_path):
-                os.mkdir(args.save_model_path)
-                save_name = 'best_' + datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, save_name))            
+            save_checkpoint(model,args.save_model_path,'best')           
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)

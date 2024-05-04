@@ -210,22 +210,15 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         print('loss for train : %f' % (loss_train_mean))
         
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            import os
-            if not os.path.isdir(args.save_model_path):
-                os.mkdir(args.save_model_path)
-            torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
-            torch.save(disc_model.module.state_dict(), os.path.join(args.save_model_path, 'latest_disc.pth'))
+            save_checkpoint(model,args.save_model_path,'latest')
+            save_checkpoint(disc_model,args.save_model_path,'latest_disc')
 
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou          
-                import os,datetime
-                os.makedirs(args.save_model_path, exist_ok=True)
-                timestamp = datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best'+timestamp+'.pth'))
-                torch.save(disc_model.module.state_dict(), os.path.join(args.save_model_path, 'best_disc'+timestamp+'.pth'))
-
+                save_checkpoint(model,args.save_model_path,'best')
+                save_checkpoint(disc_model,args.save_model_path,'best_disc')
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)

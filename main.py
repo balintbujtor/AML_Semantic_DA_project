@@ -1,6 +1,7 @@
 from ast import If
 from numpy import False_
-from torchvision import transforms
+from sympy import N
+from torchvision.transforms import v2
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
 from datasets.gta5 import GTA5
@@ -14,17 +15,11 @@ import trainings.train_ADA as train_ADA
 import datasets.augment as augment
  
 
-
-
-
-
-
-
 def main():
     args = parse_args()
 
     n_classes = args.num_classes
-    root_dir = args.root_dir #currently useless, to reimplement to match new structure
+    root_dir = args.root_dir #currently not used, to reimplement to match new structure
     split = args.split
 
     train_dataset = args.training_dataset
@@ -32,7 +27,7 @@ def main():
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
 
-    data_augmentation = True if args.use_augmentation else False
+    aug_method = args.aug_method
 
     validation_split = .2
     shuffle_dataset = True
@@ -61,17 +56,17 @@ def main():
         print("Cityscapes loaded.")
         root_dir="Cityscapes/Cityspaces/"
         
-        std_img_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP), Image.BILINEAR),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=MEAN, std=STD),
+        std_img_transforms = v2.Compose([
+            v2.Resize((CITYSCAPES_CROP), Image.BILINEAR),
+            v2.ToTensor(),
+            v2.Normalize(mean=MEAN, std=STD),
         ])
         
         # Image.NEAREST s.t. the label values are kept
         # PILToTensor() to avoid normalizing into (0,1)
-        std_lbl_transforms = transforms.Compose([
-            transforms.Resize((CITYSCAPES_CROP),Image.NEAREST),
-            transforms.PILToTensor(),
+        std_lbl_transforms = v2.Compose([
+            v2.Resize((CITYSCAPES_CROP),Image.NEAREST),
+            v2.PILToTensor(),
         ])
         
 
@@ -104,33 +99,29 @@ def main():
                                         shuffle=False,
                                         num_workers=args.num_workers,
                                         drop_last=False)
-
+            
     #Loads gta5 if it's used in train or val        
     if 'gta5' in (train_dataset,val_dataset, target_dataset):
         print("Gta5 loaded.")
         root_dir="GTA5"
-
-        std_img_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP), Image.BILINEAR),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=MEAN, std=STD),
+        
+        std_img_transforms = v2.Compose([
+            v2.Resize((GTA5_CROP), Image.BILINEAR),
+            augment.to_tensor,
+            v2.Normalize(mean=MEAN, std=STD),
         ])
         
-        std_lbl_transforms = transforms.Compose([
-            transforms.Resize((GTA5_CROP), Image.NEAREST),
-            transforms.PILToTensor(),
+        std_lbl_transforms = v2.Compose([
+            v2.Resize((GTA5_CROP), Image.NEAREST),
+            v2.PILToTensor(),
         ])
 
-        #Data augmentation
-        if data_augmentation:
-            print("Unsupported atm, sorry :(")
-            #std_img_transforms = augment.ExtCompose([ augment.ExtScale(scale=0.5),
-            #                                        augment.ExtRandomHorizontalFlip(),
-            #                                        augment.ExtToTensor(),
-            #                                        ])
-            #augmented_image, augmented_label = std_img_transforms(image, label)
+                                                                         
         
-        dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+        dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
+        #TODO Separate the gta5 class calls for each mode: train,...
+        #TODO Implement aug for cityscapes
+        #TODO Rename stuff augment.py
         
         dataset_size = len(dataset)
         indices = list(range(dataset_size))
