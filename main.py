@@ -1,5 +1,6 @@
 from ast import If
 from numpy import False_
+from sympy import N
 from torchvision.transforms import v2
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
@@ -26,7 +27,7 @@ def main():
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
 
-    use_augmentation = True if args.use_augmentation else False
+    aug_method = args.aug_method
 
     validation_split = .2
     shuffle_dataset = True
@@ -103,28 +104,36 @@ def main():
     if 'gta5' in (train_dataset,val_dataset, target_dataset):
         print("Gta5 loaded.")
         root_dir="GTA5"
-
-        if train_dataset == 'gta5' and use_augmentation: 
-            std_img_transforms = augment.aug_transformations[args.augmentation]
-            
-            std_lbl_transforms = augment.label_transformations[args.augmentation]
-
-
         
-        else:
-            std_img_transforms = v2.Compose([
+        std_img_transforms = v2.Compose([
+            v2.Resize((GTA5_CROP), Image.BILINEAR),
+            augment.to_tensor,
+            v2.Normalize(mean=MEAN, std=STD),
+        ])
+        
+        std_lbl_transforms = v2.Compose([
+            v2.Resize((GTA5_CROP), Image.NEAREST),
+            v2.PILToTensor(),
+        ])
+
+        if train_dataset == 'gta5' and aug_method != '':     
+            aug_img_transforms = v2.Compose([
                 v2.Resize((GTA5_CROP), Image.BILINEAR),
                 augment.to_tensor,
                 v2.Normalize(mean=MEAN, std=STD),
+                augment.aug_transformations[args.augmentation]
             ])
             
-            std_lbl_transforms = v2.Compose([
+            aug_lbl_transforms = v2.Compose([
                 v2.Resize((GTA5_CROP), Image.NEAREST),
                 v2.PILToTensor(),
+                augment.label_transformations[args.augmentation]
             ])
-                                                                                    
+            train_dataset = GTA5(root=Path(args.root_dir), img_transforms=aug_img_transforms, aug_transforms=std_lbl_transforms)
+                                                                           
         
-        dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+        dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
+        
         
         dataset_size = len(dataset)
         indices = list(range(dataset_size))

@@ -441,8 +441,9 @@ def parse_args():
                        default='train_1',
                        help='Method to call for training, either train_1 or train_ADA.')
 	
-    parse.add_argument('--use_augmentation',
-					   action = 'store_true',
-                       help='Specify if data augmentation should be performed.')
+    parse.add_argument('--aug_method',
+                       type=str,
+                       default='',
+                       help='Specify if and how data augmentation should be performed.')
 	
     return parse.parse_args()
