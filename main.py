@@ -14,12 +14,11 @@ import trainings.train_ADA as train_ADA
 import datasets.augment as augment
  
 
-
 def main():
     args = parse_args()
 
     n_classes = args.num_classes
-    root_dir = args.root_dir #currently useless, to reimplement to match new structure
+    root_dir = args.root_dir #currently not used, to reimplement to match new structure
     split = args.split
 
     train_dataset = args.training_dataset
