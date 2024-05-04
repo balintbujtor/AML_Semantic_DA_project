@@ -1,5 +1,7 @@
 from torchvision.transforms import v2
+import torch
 
+# Define the augmentations
 bright_t = v2.ColorJitter(brightness = [1,3])
 contrast_t = v2.ColorJitter(contrast = [2,6])
 saturation_t = v2.ColorJitter(saturation = [1,4])
@@ -11,7 +13,11 @@ rot_t = v2.RandomRotation(degrees = 90)
 blur_t = v2.GaussianBlur(kernel_size=15, sigma=(0.3, 0.7))
 sol_t = v2.RandomSolarize(p = 1, threshold = 0.4)
 
+to_tensor = v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])
 
+
+
+# Define standard transformations
 aug_transformations = {
     "C-S-HF": v2.Compose([contrast_t, saturation_t, hflip_t]),
     "H-RP-HF": v2.Compose([hue_t, rp_t, hflip_t]),

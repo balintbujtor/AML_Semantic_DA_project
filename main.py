@@ -98,7 +98,7 @@ def main():
                                         shuffle=False,
                                         num_workers=args.num_workers,
                                         drop_last=False)
-
+            
     #Loads gta5 if it's used in train or val        
     if 'gta5' in (train_dataset,val_dataset, target_dataset):
         print("Gta5 loaded.")
@@ -114,7 +114,7 @@ def main():
         else:
             std_img_transforms = v2.Compose([
                 v2.Resize((GTA5_CROP), Image.BILINEAR),
-                v2.ToTensor(),
+                augment.to_tensor,
                 v2.Normalize(mean=MEAN, std=STD),
             ])
             
