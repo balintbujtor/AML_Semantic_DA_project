@@ -119,7 +119,9 @@ def main():
                                                                          
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
-        
+        #TODO Separate the gta5 class calls for each mode: train,...
+        #TODO Implement aug for cityscapes
+        #TODO Rename stuff augment.py
         
         dataset_size = len(dataset)
         indices = list(range(dataset_size))
