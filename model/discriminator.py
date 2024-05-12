@@ -7,6 +7,8 @@ class Discriminator(nn.Module):
 	def __init__(self, num_classes, ndf = 64):
 		super(Discriminator, self).__init__()
 
+		# ndf = Number of Discriminator Filters
+  
 		self.conv1 = nn.Conv2d(num_classes, ndf, kernel_size=4, stride=2, padding=1)
 		self.conv2 = nn.Conv2d(ndf, ndf*2, kernel_size=4, stride=2, padding=1)
 		self.conv3 = nn.Conv2d(ndf*2, ndf*4, kernel_size=4, stride=2, padding=1)
@@ -36,11 +38,3 @@ class Discriminator(nn.Module):
 		#x = self.sigmoid(x) 
 
 		return x
-	
-	## I don't understand what for -- So This is to decide wether we want to train the discriminator or not
-	## intead I did it in the code of the training
-	def train_params(self, requires_grad=True):
-    	# Function to set requires_grad attribute of parameters for training
-    		for param in self.parameters():
-        		param.requires_grad = requires_grad
-	

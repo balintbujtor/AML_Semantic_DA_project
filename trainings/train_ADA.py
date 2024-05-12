@@ -22,7 +22,7 @@ def val(args, model, dataloader, device):
         hist = np.zeros((args.num_classes, args.num_classes))
         for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
-            #maybe this is not good and cuda() is needed
+
             data = data.to(device)
             label = label.long().to(device)
 
@@ -92,7 +92,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     step = 0
 
     ## Initialize discriminator
-    disc_model = torch.nn.DataParallel(Discriminator(num_classes=args.num_classes)).cuda() 
+    disc_model = torch.nn.DataParallel(Discriminator(num_classes=args.num_classes)).to(device) 
     disc_optimizer.zero_grad() # by default we use adam for both the segmentation model and the discriminator
     
     for epoch in range(args.epoch_start_i, args.num_epochs):
@@ -115,9 +115,9 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         
 
         for ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
-            data_source = data_source.cuda()
-            label = label.long().cuda()
-            data_target = data_target.cuda()
+            data_source = data_source.to(device)
+            label = label.long().to(device)
+            data_target = data_target.to(device)
          
 
             ## clearing the gradients of all optimized variables. This is necessary 
@@ -145,8 +145,6 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 loss = loss_segmentation
 
             scaler.scale(loss).backward()
-                # scaler.step(optimizer)
-                # scaler.update()
 
             # reset the optimizer of segmentation model to zero
                 # optimizer.zero_grad()
@@ -156,7 +154,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 D_t_output = disc_model(F.softmax(target_output))
                 
                 loss_adv_target = adv_loss_func(D_t_output,
-                                            torch.FloatTensor(D_t_output.data.size()).fill_(label_source).cuda())
+                                            torch.FloatTensor(D_t_output.data.size()).fill_(label_source).to(device))
                 
             adv_loss = Lambda_adv*loss_adv_target
                 
@@ -176,7 +174,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             with amp.autocast():
                 D_out1_s = disc_model(F.softmax(source_output))
                 loss_D1_s = disc_loss_func(D_out1_s,
-                                          torch.FloatTensor(D_out1_s.data.size()).fill_(label_source).cuda())
+                                          torch.FloatTensor(D_out1_s.data.size()).fill_(label_source).to(device))
             
             scaler.scale(loss_D1_s).backward()
             
@@ -184,7 +182,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
             with amp.autocast():
                 D_out1_t = disc_model(F.softmax(target_output))
                 loss_D1_t = disc_loss_func(D_out1_t,
-                                          torch.FloatTensor(D_out1_t.data.size()).fill_(label_source).cuda())
+                                          torch.FloatTensor(D_out1_t.data.size()).fill_(label_source).to(device))
             scaler.scale(loss_D1_t).backward()
             
             

@@ -18,7 +18,6 @@ def val(args, model, dataloader, device):
         hist = np.zeros((args.num_classes, args.num_classes))
         for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
-            #maybe this is not good and cuda() is needed
             data = data.to(device)
             label = label.long().to(device)
 
