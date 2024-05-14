@@ -12,6 +12,28 @@ import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
 import datasets.augment as augment
  
+def calculate_mean_std(dataloader):
+    """Calculates the mean and std of the dataset
+
+    Args:
+        dataset (CityScapes): the dataset to calculate the mean and std of
+
+    Returns:
+        tuple: the mean and std of the dataset
+    """
+    mean = 0.
+    std = 0.
+    nb_samples = 0.
+    for data, _ in dataloader:
+        batch_samples = data.size(0)
+        data = data.view(batch_samples, data.size(1), -1)
+        mean += data.mean(2).sum(0)
+        std += data.std(2).sum(0)
+        nb_samples += batch_samples
+
+    mean /= nb_samples
+    std /= nb_samples
+    return mean, std
 
 def main():
     args = parse_args()
@@ -46,6 +68,27 @@ def main():
     assert args.training_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
     assert val_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
     
+    # TODO: REMOVE AFTER COMPUTING CS MEAN AND STD
+    img_transforms = v2.Compose([
+        v2.ToTensor(),
+    ])
+    dataset = CityScapes(root_dir="Cityscapes/Cityspaces/", split='train', img_transforms=img_transforms, lbl_transforms=img_transforms)
+    dataloader_train = DataLoader(dataset,
+                                batch_size=args.batch_size,
+                                shuffle=True,
+                                num_workers=args.num_workers,
+                                pin_memory=False,
+                                drop_last=True)
+    
+    mean, std = calculate_mean_std(dataloader_train)
+    
+    print(f"Mean: {mean}, Std: {std}")
+    print('Entering while because mean and std are computed')
+
+    while True:
+        pass   
+    
+     
     #Loads cityscapes if it's used in train or val
     if 'cityscapes' in (args.training_dataset, val_dataset, args.target_dataset):
         print("Cityscapes loaded.")
@@ -231,7 +274,6 @@ if __name__ == "__main__":
     main()
     
     # TODO: move evaluation function to separate file as we always use the same function
-    # TODO: streamline the usage of args.[...] in the code
     # TODO: hide the dataloader and the preprocessing in a function
     # TODO: set the datasets based on the training method
     # TODO: revise the arguments probably val_only training_method and mode are not needed
