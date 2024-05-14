@@ -1,6 +1,3 @@
-from ast import If
-from numpy import False_
-from sympy import N
 from torchvision.transforms import v2
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
@@ -12,18 +9,16 @@ from utils import *
 import os
 import trainings.train_1 as train_1
 import trainings.train_ADA as train_ADA
+import trainings.train_FDA as train_FDA
 import datasets.augment as augment
  
 
 def main():
     args = parse_args()
 
-    n_classes = args.num_classes
     root_dir = args.root_dir #currently not used, to reimplement to match new structure
     split = args.split
 
-    train_dataset = args.training_dataset
-    target_dataset = args.target_dataset 
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
 
@@ -48,11 +43,11 @@ def main():
     MEAN = [0.485, 0.456, 0.406]
     STD = [0.229, 0.224, 0.225]
     
-    assert train_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
+    assert args.training_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
     assert val_dataset in ['','cityscapes', 'gta5'], "Dataset not supported"
     
     #Loads cityscapes if it's used in train or val
-    if 'cityscapes' in (train_dataset,val_dataset, target_dataset):
+    if 'cityscapes' in (args.training_dataset, val_dataset, args.target_dataset):
         print("Cityscapes loaded.")
         root_dir="Cityscapes/Cityspaces/"
         
@@ -71,7 +66,7 @@ def main():
         
 
 
-        if train_dataset == 'cityscapes':
+        if args.training_dataset == 'cityscapes':
             print("dataloader_train is on cityscapes")
             train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
             dataloader_train = DataLoader(train_dataset,
@@ -81,7 +76,7 @@ def main():
                                         pin_memory=False,
                                         drop_last=True)
             
-        if target_dataset == 'cityscapes':
+        if args.target_dataset == 'cityscapes':
             print("dataloader_target is on cityscapes")
             target_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
             dataloader_target = DataLoader(target_dataset,
@@ -101,9 +96,13 @@ def main():
                                         drop_last=False)
             
     #Loads gta5 if it's used in train or val        
-    if 'gta5' in (train_dataset,val_dataset, target_dataset):
+    if 'gta5' in (args.training_dataset,val_dataset, args.target_dataset):
         print("Gta5 loaded.")
         root_dir="GTA5"
+        
+        # if FDA is used the sizes of the images have to be the same
+        if args.training_method == 'train_FDA': 
+            GTA5_CROP = CITYSCAPES_CROP
         
         std_img_transforms = v2.Compose([
             v2.Resize((GTA5_CROP), Image.BILINEAR),
@@ -136,7 +135,7 @@ def main():
         valid_sampler = SubsetRandomSampler(val_indices)
 
         # Setting the dataloaders
-        if train_dataset == 'gta5':
+        if args.training_dataset == 'gta5':
             print("dataloader_train is on gta5")
             dataloader_train = DataLoader(dataset, 
                                         batch_size=args.batch_size,
@@ -146,7 +145,7 @@ def main():
                                         drop_last=True, 
                                         sampler=train_sampler)
             
-        if target_dataset == 'gta5':
+        if args.target_dataset == 'gta5':
             print("dataloader_target is on gta5")
             dataloader_target = DataLoader(dataset, 
                                         batch_size=args.batch_size,
@@ -167,7 +166,7 @@ def main():
 
 
     ## model
-    model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
+    model = BiSeNet(backbone=args.backbone, n_classes=args.num_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -205,6 +204,13 @@ def main():
         return None
 
 
+    if args.training_method == 'train_FDA':
+        if val_only:
+            train_FDA.val(args, model, dataloader_val, device)
+        else:
+            train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device)  ## train loop
+            train_FDA.val(args, model, dataloader_val, device)                                              # final test
+            
     if args.training_method == 'train_ADA':
         if val_only:
             train_ADA.val(args, model, dataloader_val, device)    
@@ -223,4 +229,9 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
+    
+    # TODO: move evaluation function to separate file as we always use the same function
+    # TODO: streamline the usage of args.[...] in the code
+    # TODO: hide the dataloader and the preprocessing in a function
+    # TODO: set the datasets based on the training method
+    # TODO: revise the arguments probably val_only training_method and mode are not needed

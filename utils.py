@@ -1,3 +1,5 @@
+from re import S
+from scipy.fft import ifft2
 import torch.nn as nn
 import torch
 import numpy as np
@@ -10,7 +12,6 @@ from torch.nn import functional as F
 from PIL import Image
 import os 
 import datetime
-
 
 def poly_lr_scheduler(optimizer, init_lr, iter, lr_decay_iter=1,
                     max_iter=300, power=0.9):
@@ -318,28 +319,14 @@ def save_checkpoint(model, savePath=".",saveName = "checkpoint",includeTimestamp
 	
 
 ## FDA
-
-def extract_ampl_phase(fft_im):
-    # fft_im: size should be bx3xhxwx2
-    fft_amp = fft_im[:,:,:,:,0]**2 + fft_im[:,:,:,:,1]**2
-    fft_amp = torch.sqrt(fft_amp)
-    fft_pha = torch.atan2( fft_im[:,:,:,:,1], fft_im[:,:,:,:,0] )
-    return fft_amp, fft_pha
-
-def low_freq_mutate( amp_src, amp_trg, L=0.1 ):
-    _, _, h, w = amp_src.size()
-    b = (  np.floor(np.amin((h,w))*L)  ).astype(int)     # get b
-    amp_src[:,:,0:b,0:b]     = amp_trg[:,:,0:b,0:b]      # top left
-    amp_src[:,:,0:b,w-b:w]   = amp_trg[:,:,0:b,w-b:w]    # top right
-    amp_src[:,:,h-b:h,0:b]   = amp_trg[:,:,h-b:h,0:b]    # bottom left
-    amp_src[:,:,h-b:h,w-b:w] = amp_trg[:,:,h-b:h,w-b:w]  # bottom right
-    return amp_src
+# we are using the np version because they are working without major modifications to the original code
 
 def low_freq_mutate_np( amp_src, amp_trg, L=0.1 ):
     a_src = np.fft.fftshift( amp_src, axes=(-2, -1) )
     a_trg = np.fft.fftshift( amp_trg, axes=(-2, -1) )
 
-    _, h, w = a_src.shape
+	# extrd dim for the batch
+    _, _, h, w = a_src.shape
     b = (  np.floor(np.amin((h,w))*L)  ).astype(int)
     c_h = np.floor(h/2.0).astype(int)
     c_w = np.floor(w/2.0).astype(int)
@@ -349,36 +336,10 @@ def low_freq_mutate_np( amp_src, amp_trg, L=0.1 ):
     w1 = c_w-b
     w2 = c_w+b+1
 
-    a_src[:,h1:h2,w1:w2] = a_trg[:,h1:h2,w1:w2]
+	# extra dim for the batch
+    a_src[:,:,h1:h2,w1:w2] = a_trg[:,:,h1:h2,w1:w2]
     a_src = np.fft.ifftshift( a_src, axes=(-2, -1) )
     return a_src
-
-def FDA_source_to_target(src_img, trg_img, L=0.1):
-    # exchange magnitude
-    # input: src_img, trg_img
-
-    # get fft of both source and target
-    fft_src = torch.rfft( src_img.clone(), signal_ndim=2, onesided=False ) 
-    fft_trg = torch.rfft( trg_img.clone(), signal_ndim=2, onesided=False )
-
-    # extract amplitude and phase of both ffts
-    amp_src, pha_src = extract_ampl_phase( fft_src.clone())
-    amp_trg, pha_trg = extract_ampl_phase( fft_trg.clone())
-
-    # replace the low frequency amplitude part of source with that from target
-	## L is beta
-    amp_src_ = low_freq_mutate( amp_src.clone(), amp_trg.clone(), L=0.05 )
-
-    # recompose fft of source
-    fft_src_ = torch.zeros( fft_src.size(), dtype=torch.float )
-    fft_src_[:,:,:,:,0] = torch.cos(pha_src.clone()) * amp_src_.clone()
-    fft_src_[:,:,:,:,1] = torch.sin(pha_src.clone()) * amp_src_.clone()
-
-    # get the recomposed image: source content, target style
-    _, _, imgH, imgW = src_img.size()
-    src_in_trg = torch.irfft( fft_src_, signal_ndim=2, onesided=False, signal_sizes=[imgH,imgW] )
-
-    return src_in_trg
 
 def FDA_source_to_target_np( src_img, trg_img, L=0.1 ):
     # exchange magnitude
@@ -422,136 +383,46 @@ class EntropyLoss(nn.Module):
 		# compute robust entropy
 		ent = ent ** 2.0 + 1e-8
 		ent = ent ** ita
-		self.loss_ent = ent.mean()
-		return x
+		ent_loss_value = ent.mean()
+  
+		return ent_loss_value
 
 def parse_args():
-    parse = argparse.ArgumentParser()
+	parse = argparse.ArgumentParser()
 
-    parse.add_argument('--root_dir',
-                       dest='root_dir',
-                       type=str)
-    
-    parse.add_argument('--split',
-                       dest='split',
-                       type=str,
-                       default='train')
+	parse.add_argument('--split', dest='split', type=str, default='train')
+	parse.add_argument('--validation_only', action='store_true', help='Skip training and perform validation directly.')
+	parse.add_argument('--training_method', type=str, default='train_1', help='Method to call for training, train_1 or train_ADA or train_FDA.')
 
-    parse.add_argument('--backbone',
-                       dest='backbone',
-                       type=str,
-                       default='CatmodelSmall')
-	
-    parse.add_argument('--pretrain_path',
-                      dest='pretrain_path',
-                      type=str,
-                      default='')
-	
-    parse.add_argument('--use_conv_last',
-                       dest='use_conv_last',
-                       type=str2bool,
-                       default=False)
-	
-    parse.add_argument('--num_epochs',
-                       type=int, default=300,
-                       help='Number of epochs to train for')
-	
-    parse.add_argument('--epoch_start_i',
-                       type=int,
-                       default=0,
-                       help='Start counting epochs from this number')
-	
-    parse.add_argument('--checkpoint_step',
-                       type=int,
-                       default=10,
-                       help='How often to save checkpoints (epochs)')
-	
-    parse.add_argument('--validation_step',
-                       type=int,
-                       default=1,
-                       help='How often to perform validation (epochs)')
-	
-    parse.add_argument('--batch_size',
-                       type=int,
-                       default=2,
-                       help='Number of images in each batch')
-	
-    parse.add_argument('--learning_rate',
-                        type=float,
-                        default=0.01,
-                        help='learning rate used for train')
-    parse.add_argument('--disc_learning_rate',
-                        type=float,
-                        default=0.0001,
-                        help='learning rate used for train')
-	
-    parse.add_argument('--num_workers',
-                       type=int,
-                       default=4,
-                       help='num of workers')
-	
-    parse.add_argument('--num_classes',
-                       type=int,
-                       default=19,
-                       help='num of object classes (with void)')
-	
-    parse.add_argument('--cuda',
-                       type=str,
-                       default='0',
-                       help='GPU ids used for training')
-	
-    parse.add_argument('--use_gpu',
-                       type=bool,
-                       default=True,
-                       help='whether to user gpu for training')
-	
-    parse.add_argument('--save_model_path',
-                       type=str,
-                       default=None,
-                       help='path to save model')
-	
-    parse.add_argument('--optimizer',
-                       type=str,
-                       default='adam',
-                       help='optimizer, support rmsprop, sgd, adam')
-	
-    parse.add_argument('--disc_optimizer',
-				type=str,
-				default='adam',
-				help='disc_optimizer, support rmsprop, sgd, adam')
+	parse.add_argument('--training_dataset', type=str, default='', help='dataset to train on')
+	parse.add_argument('--target_dataset', type=str, default='', help='dataset to validate on. If not defined, equals training dataset.')
+	parse.add_argument('--validation_dataset', type=str, default='', help='dataset to validate on. If not defined, equals training dataset.')
+	parse.add_argument('--aug_method', type=str, default='', help='Specify if and how data augmentation should be performed.')
 
-    parse.add_argument('--loss',
-                       type=str,
-                       default='crossentropy',
-                       help='loss function')
-	
-    parse.add_argument('--training_dataset',
-                       type=str,
-					   default='',
-                       help='dataset to train on')
+	parse.add_argument('--root_dir', dest='root_dir', type=str)
+	parse.add_argument('--pretrain_path', dest='pretrain_path', type=str, default='')
+	parse.add_argument('--save_model_path', type=str, default=None, help='path to save model')
+	parse.add_argument('--num_classes', type=int, default=19, help='num of object classes (with void)')
+	parse.add_argument('--backbone', dest='backbone', type=str, default='CatmodelSmall')
+	parse.add_argument('--use_conv_last', dest='use_conv_last', type=str2bool, default=False)
 
-    parse.add_argument('--target_dataset',
-                       type=str,
-                       default='',
-                       help='dataset to validate on. If not defined, equals training dataset.')
+	parse.add_argument('--num_epochs', type=int, default=300, help='Number of epochs to train for')
+	parse.add_argument('--epoch_start_i', type=int, default=0, help='Start counting epochs from this number')
+	parse.add_argument('--checkpoint_step', type=int, default=10, help='How often to save checkpoints (epochs)')
+	parse.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
+ 
+	parse.add_argument('--batch_size', type=int, default=2, help='Number of images in each batch')
+	parse.add_argument('--learning_rate', type=float, default=0.01, help='learning rate used for train')
+	parse.add_argument('--disc_learning_rate', type=float, default=0.0001, help='learning rate used for train')
+	parse.add_argument('--optimizer', type=str, default='adam', help='optimizer, support rmsprop, sgd, adam')
+	parse.add_argument('--disc_optimizer', type=str, default='adam', help='disc_optimizer, support rmsprop, sgd, adam')
+	parse.add_argument('--loss', type=str, default='crossentropy', help='loss function')
+	parse.add_argument("--switch2entropy", type=int, default=50000, help="switch to entropy after this many steps")
+	parse.add_argument("--entW", type=float, default=0.005, help="weight of the entropy loss in the total loss")
+	parse.add_argument("--ita", type=float, default=2.0, help="weight for entropy loss")
 
-    parse.add_argument('--validation_dataset',
-                       type=str,
-                       default='',
-                       help='dataset to validate on. If not defined, equals training dataset.')
-	
-    parse.add_argument('--validation_only',
-					action = 'store_true',
-					help='Skip training and perform validation directly.')
-
-    parse.add_argument('--training_method',
-                       type=str,
-                       default='train_1',
-                       help='Method to call for training, either train_1 or train_ADA.')
-	
-    parse.add_argument('--aug_method',
-                       type=str,
-                       default='',
-                       help='Specify if and how data augmentation should be performed.')
-	
-    return parse.parse_args()
+	parse.add_argument('--num_workers', type=int, default=4, help='num of workers')
+	parse.add_argument('--cuda', type=str, default='0', help='GPU ids used for training')
+	parse.add_argument('--use_gpu', type=bool, default=True, help='whether to user gpu for training')
+ 
+	return parse.parse_args()
