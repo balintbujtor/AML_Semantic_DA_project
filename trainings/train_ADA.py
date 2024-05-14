@@ -95,7 +95,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     disc_model = torch.nn.DataParallel(Discriminator(num_classes=args.num_classes)).to(device) 
     disc_optimizer.zero_grad() # by default we use adam for both the segmentation model and the discriminator
     
-    for epoch in range(args.epoch_start_i, args.num_epochs):
+    for epoch in range(args.num_epochs):
         lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
         disc_lr = poly_lr_scheduler(disc_optimizer, disc_learning_rate, iter=epoch, max_iter=args.num_epochs)
 

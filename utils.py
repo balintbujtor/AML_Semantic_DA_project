@@ -407,7 +407,6 @@ def parse_args():
 	parse.add_argument('--use_conv_last', dest='use_conv_last', type=str2bool, default=False)
 
 	parse.add_argument('--num_epochs', type=int, default=300, help='Number of epochs to train for')
-	parse.add_argument('--epoch_start_i', type=int, default=0, help='Start counting epochs from this number')
 	parse.add_argument('--checkpoint_step', type=int, default=10, help='How often to save checkpoints (epochs)')
 	parse.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
  

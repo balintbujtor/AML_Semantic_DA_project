@@ -84,10 +84,8 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
     ## loss function for the segmentation model
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
     loss_entr = EntropyLoss()
-
-    # TODO: implement continuation from given epoch
     
-    for epoch in range(args.epoch_start_i, args.num_epochs):
+    for epoch in range(args.num_epochs):
         lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
 
         ## Training loop

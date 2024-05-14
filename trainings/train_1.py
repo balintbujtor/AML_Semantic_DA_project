@@ -59,7 +59,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device):
     max_miou = 0
     step = 0
     
-    for epoch in range(args.epoch_start_i, args.num_epochs):
+    for epoch in range(args.num_epochs):
         lr = poly_lr_scheduler(optimizer, args.learning_rate, iter=epoch, max_iter=args.num_epochs)
         model.train()
         tq = tqdm(total=len(dataloader_train) * args.batch_size)
