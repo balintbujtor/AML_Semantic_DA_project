@@ -6,6 +6,8 @@ from collections import namedtuple
 from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 from typing import Any, Tuple
+import random as rd
+import augment
 
 class CityScapes(VisionDataset):
     """
@@ -66,6 +68,7 @@ class CityScapes(VisionDataset):
                  split: str = 'train', 
                  img_transforms = None,
                  lbl_transforms = None,
+                 aug_method: str = ''
         ):
         """
         Initialize the CityScapes dataset.
@@ -86,6 +89,7 @@ class CityScapes(VisionDataset):
         self.split = split
         self.img_transforms = img_transforms
         self.lbl_transforms = lbl_transforms
+        self.aug_method = aug_method
 
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
@@ -123,11 +127,19 @@ class CityScapes(VisionDataset):
         image = Image.open(self.image_paths[idx]).convert('RGB')
         label = Image.open(self.label_paths[idx])
 
+        # Apply passed transformations
         if self.img_transforms is not None:
             image = self.img_transforms(image)
         
         if self.lbl_transforms is not None:   
             label = self.lbl_transforms(label)
+
+        # Apply augmentation next
+        if self.aug_method != '':
+            if rd.random() < 0.5:
+                img = augment.aug_transformations[self.aug_method](img)
+                lbl = augment.label_transformations[self.aug_method](lbl)
+        
         
         return image, label
 

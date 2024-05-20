@@ -73,7 +73,7 @@ def main():
 
         if train_dataset == 'cityscapes':
             print("dataloader_train is on cityscapes")
-            train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+            train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
             dataloader_train = DataLoader(train_dataset,
                                         batch_size=args.batch_size,
                                         shuffle=True,
@@ -119,10 +119,9 @@ def main():
                                                                          
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
-        #TODO Separate the gta5 class calls for each mode: train,...
         #TODO Implement aug for cityscapes
-        #TODO Rename stuff augment.py
         
+        #TODO Change splitting process between train and val to be more like cityscapes
         dataset_size = len(dataset)
         indices = list(range(dataset_size))
         split = int(np.floor(validation_split * dataset_size))
@@ -148,6 +147,8 @@ def main():
             
         if target_dataset == 'gta5':
             print("dataloader_target is on gta5")
+            #HOTFIX: Redeclaring the dataset to avoid using data augmentation on target
+            dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method='')
             dataloader_target = DataLoader(dataset, 
                                         batch_size=args.batch_size,
                                         shuffle=False,
@@ -158,6 +159,8 @@ def main():
 
         if val_dataset == 'gta5':
             print("dataloader_val is on gta5")
+            #HOTFIX: Redeclaring the dataset to avoid using data augmentation on validation
+            dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method='')
             dataloader_val = DataLoader(dataset, 
                                         batch_size=1,
                                         shuffle=False,
