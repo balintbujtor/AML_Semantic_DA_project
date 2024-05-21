@@ -124,15 +124,15 @@ class CityScapes(VisionDataset):
         Returns:
             tuple: The image and label
         """
-        image = Image.open(self.image_paths[idx]).convert('RGB')
-        label = Image.open(self.label_paths[idx])
+        img = Image.open(self.image_paths[idx]).convert('RGB')
+        lbl = Image.open(self.label_paths[idx])
 
         # Apply passed transformations
         if self.img_transforms is not None:
-            image = self.img_transforms(image)
+            img = self.img_transforms(img)
         
         if self.lbl_transforms is not None:   
-            label = self.lbl_transforms(label)
+            lbl = self.lbl_transforms(lbl)
 
         # Apply augmentation next
         if self.aug_method != '':
@@ -141,7 +141,7 @@ class CityScapes(VisionDataset):
                 lbl = augment.label_transformations[self.aug_method](lbl)
         
         
-        return image, label
+        return img, lbl
 
     def __len__(self) -> int:
         """returns the length of the dataset
