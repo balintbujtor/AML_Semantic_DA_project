@@ -63,7 +63,7 @@ def val(args, model, dataloader, device):
     # We validate only on Cityscapes
 
 
-def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device):
+def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device, save_keyword):
     
     # constants
     Lambda_adv = 0.0002
@@ -208,15 +208,19 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         print('loss for train : %f' % (loss_train_mean))
         
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            save_checkpoint(model,args.save_model_path,'latest')
-            save_checkpoint(disc_model,args.save_model_path,'latest_disc')
+            saveName = save_keyword + '-latest'
+            saveName_disc = save_keyword + '-latest_disc'  
+            save_checkpoint(model,args.save_model_path,saveName)
+            save_checkpoint(disc_model,args.save_model_path,saveName_disc)
 
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
-                max_miou = miou          
-                save_checkpoint(model,args.save_model_path,'best')
-                save_checkpoint(disc_model,args.save_model_path,'best_disc')
+                max_miou = miou
+                saveName = save_keyword + '-best'
+                saveName_disc = save_keyword + '-best_disc'          
+                save_checkpoint(model,args.save_model_path,saveName)
+                save_checkpoint(disc_model,args.save_model_path,saveName_disc)
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
