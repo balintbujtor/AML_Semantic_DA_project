@@ -554,4 +554,9 @@ def parse_args():
                        default='',
                        help='Specify if and how data augmentation should be performed.')
 	
+    parse.add_argument('--save_keyword',
+                       type=str,
+                       default='',
+                       help='Keyword to be used on the checkpoint file.')
+	
     return parse.parse_args()
