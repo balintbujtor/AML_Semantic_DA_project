@@ -7,7 +7,7 @@ from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 from typing import Any, Tuple
 import random as rd
-import augment
+import datasets.augment as augment
 
 class CityScapes(VisionDataset):
     """
