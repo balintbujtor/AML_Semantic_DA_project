@@ -92,7 +92,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device, save
         print('loss for train : %f' % (loss_train_mean))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
             saveName = save_keyword + 'latest'
-            save_checkpoint(model,args.save_model_path,saveName)
+            save_checkpoint(model,args.save_model_path,saveName,includeTimestamp=False)
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
