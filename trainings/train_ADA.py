@@ -114,7 +114,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
         # disc_loss_record = []
         
 
-        for ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
+        for ((data_source, label), (data_target, _)) in zip(dataloader_source, dataloader_target):
             data_source = data_source.to(device)
             label = label.long().to(device)
             data_target = data_target.to(device)
