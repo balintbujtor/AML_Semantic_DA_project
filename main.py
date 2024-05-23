@@ -213,14 +213,14 @@ def main():
         if val_only:
             train_ADA.val(args, model, dataloader_val, device)    
         else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device,save_keyword)      ## train loop
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_keyword)      ## train loop
             train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
 
     else: #using standard training method
         if val_only:
             train_1.val(args, model, dataloader_val, device)
         else:
-            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device,save_keyword)        ## train loop
+            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_keyword)        ## train loop
             train_1.val(args, model, dataloader_val, device)                                        # final test
 
 
