@@ -220,7 +220,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
                 max_miou = miou
                 saveName = save_keyword + '-best'
                 saveName_disc = save_keyword + '-best_disc'          
-                save_checkpoint(model,args.save_model_path,saveName)
-                save_checkpoint(disc_model,args.save_model_path,saveName_disc)
+                save_checkpoint(model,args.save_model_path,saveName,includeTimestamp=False)
+                save_checkpoint(disc_model,args.save_model_path,saveName_disc,includeTimestamp=False)
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)

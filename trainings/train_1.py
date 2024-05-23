@@ -98,7 +98,7 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device, save
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
-            saveName = save_keyword + 'best'
-            save_checkpoint(model,args.save_model_path,saveName)           
+                saveName = save_keyword + 'best'
+                save_checkpoint(model,args.save_model_path,saveName,includeTimestamp=False)           
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
