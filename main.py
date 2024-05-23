@@ -21,7 +21,11 @@ def main():
     n_classes = args.num_classes
     root_dir = args.root_dir #currently not used, to reimplement to match new structure
     split = args.split
+
+    # Handling checkpoint saves in a sub-folder
     save_keyword = args.save_keyword
+    save_model_path = args.save_model_path
+    save_subdir_path = make_saveDir(save_model_path,save_keyword)
 
     train_dataset = args.training_dataset
     target_dataset = args.target_dataset 
@@ -213,14 +217,14 @@ def main():
         if val_only:
             train_ADA.val(args, model, dataloader_val, device)    
         else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_keyword)      ## train loop
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
             train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
 
     else: #using standard training method
         if val_only:
             train_1.val(args, model, dataloader_val, device)
         else:
-            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_keyword)        ## train loop
+            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword)        ## train loop
             train_1.val(args, model, dataloader_val, device)                                        # final test
 
 

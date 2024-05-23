@@ -50,7 +50,7 @@ def val(args, model, dataloader, device):
         return precision, miou
 
 
-def train(args, model, optimizer, dataloader_train, dataloader_val, device, save_keyword):
+def train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword):
     writer = SummaryWriter(comment=''.format(args.optimizer))
 
     scaler = amp.GradScaler()
@@ -92,13 +92,13 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device, save
         print('loss for train : %f' % (loss_train_mean))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
             saveName = save_keyword + 'latest'
-            save_checkpoint(model,args.save_model_path,saveName,includeTimestamp=False)
+            save_checkpoint(model,save_subdir_path,saveName,includeTimestamp=False)
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
                 saveName = save_keyword + 'best'
-                save_checkpoint(model,args.save_model_path,saveName,includeTimestamp=False)           
+                save_checkpoint(model,save_subdir_path,saveName,includeTimestamp=False)           
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
