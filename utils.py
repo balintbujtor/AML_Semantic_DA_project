@@ -307,7 +307,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
 def make_saveDir(path,saveName):
-	dirName = saveName + datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S')
+	dirName = saveName + '_'+ datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S')
 	dirPath =  os.path.join(path, dirName)
 	os.mkdir(dirPath)
 	return dirPath+'/'
