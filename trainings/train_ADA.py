@@ -192,7 +192,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
        
 
             tq.update(args.batch_size)
-            tq.set_postfix(loss='%.6f' % loss, loss_D1_s='%.6f' %loss_D1_s, loss_D1_t='%.6f' %loss_D1_t)
+            tq.set_postfix(loss='%.6f' % loss, loss_D1_s='%.6f' %(loss_D1_s/Lambda_adv), loss_D1_t='%.6f' %loss_D1_t)
             step += 1
             
             loss_record.append(loss.item())
