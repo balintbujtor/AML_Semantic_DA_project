@@ -16,3 +16,4 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 |:----------------------------- |:-----------------:|:-------------:|:-------------------------:|
 | Cityscapes STDC 1 - 50 epochs |                   |               |                           |
 | GTA5 STDC 1 - 50 epochs       |                   |               |                           |
+| Domain shift GTA5>Cityscapes  |                   |               |                           |
