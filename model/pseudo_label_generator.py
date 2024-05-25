@@ -1,65 +1,60 @@
 from PIL import Image
-import torch.nn as nn
-from torch.autograd import Variable
 import torch
-import numpy as np
-from data import CreateTrgDataSSLLoader
-from model import CreateSSLModel
-from model.model_stages import BiSeNet
 import os
-from options.test_options import TestOptions
-import scipy.io as sio
+import numpy as np
+from model.model_stages import BiSeNet
 
 def pseudo_label_gen(args, 
                      dataloader_target_val,
                      checkpoint1_path, 
                      checkpoint2_path, 
-                     checkpoint3_path ):
+                     checkpoint3_path,
+                     save_path,
+                     device):
     ## We need the weights from training FDA on different Betas
     ## let's say we're usind 3 betas as the repo
 
+    # TODO check
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        
     backbone = args.backbone
     model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
     model1.load_state_dict(torch.load(checkpoint1_path))
     model1.eval()
-    model1.cuda()
+    model1.to(device)
 
     model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
     model2.load_state_dict(torch.load(checkpoint2_path))
     model2.eval()
-    model2.cuda()
+    model2.to(device)
     
     model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
     model3.load_state_dict(torch.load(checkpoint3_path))
     model3.eval()
-    model3.cuda()
+    model3.to(device)
 
     predicted_label = np.zeros((len(dataloader_target_val), 512,1024), dtype=np.uint8)
-    predicted_prob = np.zeros((len(dataloader_target_val), 512,1024), dtype=np.float16)
-    image_name = []
+    predicted_prob = np.zeros((len(dataloader_target_val), 512,1024), dtype=np.float32)    
+    image_names = []
+    
     with torch.no_grad():
         for i, (data, label, name) in enumerate(dataloader_target_val):
             
-            data = data.cuda
-
+            data = data.to(device)
+            label = label.long.to(device)
+            
             pred_1, _, _ = model1(data)
-            pred_1 = nn.functional.softmax(pred_1, dim=1)
-
             pred_2 = model2(data)
-            pred_2 = nn.functional.softmax(pred_2, dim=1)
-
             pred_3 = model3(data)
-            pred_3 = nn.functional.softmax(pred_3, dim=1)
 
-            a, b = 0.3333, 0.3333
-            pred = a*pred_1 + b*pred_2 + (1.0-a-b)*pred_3
+            pred = (pred_1 + pred_2 + pred_3) / 3
+            pred = torch.nn.functional.softmax(pred, dim=1)
             
-            
-        
             label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
-            image_name.append(name[0])
+            image_names.append(name[0])
 
   # Each class has a threshold depending on the frequency of it 
   # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
@@ -79,7 +74,7 @@ def pseudo_label_gen(args,
     print( thres )
 
     for index in range(len(dataloader_target_val)):
-        name = image_name[index]
+        name = image_names[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
         for i in range(19):
@@ -88,10 +83,6 @@ def pseudo_label_gen(args,
         output = Image.fromarray(output)
         name = name.split('/')[-1]
         output.save('%s/%s' % (args.save, name)) 
-
-
-
-
 
 
     return

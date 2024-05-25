@@ -11,11 +11,6 @@ from torchvision.transforms import v2
 
 logger = logging.getLogger()
 
-# computed mean and std of the Cityscapes dataset, on our dataset with our function
-# ???: decide if we want to use this or the imagenet mean and std
-CS_MEAN = torch.tensor([0.3075, 0.3437, 0.3014])
-CS_STD = torch.tensor([0.1880, 0.1908, 0.1881])
-
 normalize = v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
 
 

@@ -231,7 +231,22 @@ def main():
 if __name__ == "__main__":
     main()
     
-    # TODO: move evaluation function to separate file as we always use the same function
+
+    
+    # TODO: 1 check the test mbt, check pseudo generation
+    # TODO: debug
+    # TODO: 2 move evaluation function to separate file as we always use the same function
+    # TODO: debug
+    
+    
+    # TODO: 3 join cityscapes and cityscapes ssl into 1
+    # TODO: debug
+    # TODO: 4 move aug and pseudo label gen into utils folder with utils
+    # TODO: debug
+    
     # TODO: hide the dataloader and the preprocessing in a function
     # TODO: set the datasets based on the training method
     # TODO: revise the arguments probably val_only training_method and mode are not needed
+    # TODO: debug
+    
+    # TODO: comment and refactor the code

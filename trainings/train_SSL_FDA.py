@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 import torch
 import logging
+import os
 import numpy as np
 import torch.cuda.amp as amp
 from tensorboardX import SummaryWriter
@@ -11,13 +12,7 @@ from torchvision.transforms import v2
 
 logger = logging.getLogger()
 
-# computed mean and std of the Cityscapes dataset, on our dataset with our function
-# ???: decide if we want to use this or the imagenet mean and std
-CS_MEAN = torch.tensor([0.3075, 0.3437, 0.3014])
-CS_STD = torch.tensor([0.1880, 0.1908, 0.1881])
-
 normalize = v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-
 
 def val(args, model, dataloader, device):
     print('start val!')
@@ -59,16 +54,13 @@ def val(args, model, dataloader, device):
 
         return precision, miou
 
-
-
-
     # We will use both GTA5 and Cityscapes for the training
     #   dataloader_source is the dataloader of GTA5
     #   data_loader_target is the dataloader of Cityscapes => here the labels are the pseudo labels generated before
     # We validate only on Cityscapes
 
 
-def train(args, model, optimizer, dataloader_source, dataloader_target_SSL, dataloader_val, device, beta=0.09, ita=2, entW=0.005):
+def train(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, device, beta=0.09, ita=2, entW=0.005):
     
     max_miou = 0
     step = 0
@@ -91,13 +83,13 @@ def train(args, model, optimizer, dataloader_source, dataloader_target_SSL, data
         ## Training loop
         model.train()
 
-        tq = tqdm(total=min(len(dataloader_source),len(dataloader_target)) * args.batch_size)
+        tq = tqdm(total=min(len(dataloader_train_source),len(dataloader_train_target_SSL)) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr ))
         
         ## Losses for the segmentation model
         loss_record = []
         
-        for i, ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
+        for i, ((data_source, label_source), (data_target, label_target_pseudo)) in enumerate(zip(dataloader_train_source, dataloader_train_target_SSL)):
 
 
             # 1. Source to Target, Target to Target : Adapt source image to target image
@@ -106,41 +98,49 @@ def train(args, model, optimizer, dataloader_source, dataloader_target_SSL, data
             target_in_target = data_target
 
             # 2. Subtract the mean / normalize it               
-            source_image = normalize(source_in_target.clone()).cuda()
-            target_image = normalize(target_in_target.clone()).cuda()
-            label = label.long().cuda()
-         
+            image_src = normalize(source_in_target.clone()).to(device)
+            label_src = label_source.long().to(device)
+            
+            image_trg = normalize(target_in_target.clone()).to(device)
+            label_trg_psu = label_target_pseudo.long().to(device)
 
             ## clearing the gradients of all optimized variables. This is necessary 
             ## before computing the gradients for the current batch, 
             ## as you don't want gradients from previous iterations affecting the current iteration.
             optimizer.zero_grad()
-            
-            # Train segmentation
-            # Loss for segmentation : Train on Source
-            with amp.autocast():
-                source_output, source_out16, source_out32 = model(source_image)
-                target_output, _, _ = model(target_image)
-                
-                loss1 = loss_func(source_output, label.squeeze(1))
-                loss2 = loss_func(source_out16, label.squeeze(1))
-                loss3 = loss_func(source_out32, label.squeeze(1))
-                
-                loss_source = loss1 + loss2 + loss3
-                loss_target = loss_entr(target_output, ita)
-                
-            triger_ent = 0.0
-            # at a certain value of the epoch add the entropy minimization function
-            if epoch > args.switch2entropy:
-                triger_ent = 1.0
 
-            # Total loss
-            loss_total = loss_source + triger_ent * loss_target *entW
+            with amp.autocast():
+                
+                # Predictions and loss on source images
+                source_output, source_out16, source_out32 = model(image_src)
+                loss1 = loss_func(source_output, label_src.squeeze(1))
+                loss2 = loss_func(source_out16, label_src.squeeze(1))
+                loss3 = loss_func(source_out32, label_src.squeeze(1))
+                loss_seg_source = loss1 + loss2 + loss3
+                
+                # Predictions and loss on target images
+                trg_output, trg_out16, trg_out32 = model(image_trg)
+                
+                # Compute the entropy loss on the target
+                loss_ent = loss_entr(trg_output, ita)
+
+                # Compute the CE loss with the pseudo labels
+                loss1 = loss_func(trg_output, label_trg_psu.squeeze(1))
+                loss2 = loss_func(trg_out16, label_trg_psu.squeeze(1))
+                loss3 = loss_func(trg_out32, label_trg_psu.squeeze(1))
+                loss_seg_pseudo = loss1 + loss2 + loss3            
+
+                # Total loss
+                loss_total = loss_seg_source + loss_seg_pseudo + entW*loss_ent
 
             scaler.scale(loss_total).backward()
             scaler.step(optimizer)
             scaler.update()
 
+            loss_train += loss_seg_source.detach().cpu().numpy()
+            loss_val += loss_seg_pseudo.detach().cpu().numpy()
+            
+            # TODO
             tq.update(args.batch_size)
             tq.set_postfix(loss='%.6f' % loss_total)
             step += 1
@@ -154,7 +154,6 @@ def train(args, model, optimizer, dataloader_source, dataloader_target_SSL, data
         print('loss for train : %f' % (loss_train_mean))
         
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            import os
             if not os.path.isdir(args.save_model_path):
                 os.mkdir(args.save_model_path)
             torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
