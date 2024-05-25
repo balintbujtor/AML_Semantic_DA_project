@@ -1,16 +1,20 @@
+import os
+from re import A
 from torchvision.transforms import v2
-from model.model_stages import BiSeNet
-from datasets.cityscapes import CityScapes
-from datasets.gta5 import GTA5
 from torch.utils.data.sampler import SubsetRandomSampler
 from pathlib import Path
 from torch.utils.data import DataLoader
-from utils import *
-import os
-import trainings.train_1 as train_1
+from PIL import Image
+
+import trainings.train_simple as train_simple
 import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
-import datasets.augment as augment
+import trainings.val as val
+import utils.augment as augment
+from utils.utils import *
+from model.model_stages import BiSeNet
+from datasets.cityscapes import CityScapes
+from datasets.gta5 import GTA5
 
 
 def main():
@@ -207,42 +211,43 @@ def main():
 
     if args.training_method == 'train_FDA':
         if val_only:
-            train_FDA.val(args, model, dataloader_val, device)
+            val(args, model, dataloader_val, device)
         else:
-            train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device)  ## train loop
-            train_FDA.val(args, model, dataloader_val, device)                                              # final test
+            train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.beta)  ## train loop
+            val(args, model, dataloader_val, device)                                              # final test
             
     if args.training_method == 'train_ADA':
         if val_only:
-            train_ADA.val(args, model, dataloader_val, device)    
+            val(args, model, dataloader_val, device)    
         else: 
             train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device)      ## train loop
-            train_ADA.val(args, model, dataloader_val, device)                                                                          # final test
+            val(args, model, dataloader_val, device)                                                                          # final test
 
     else: #using standard training method
         if val_only:
-            train_1.val(args, model, dataloader_val, device)
+            val(args, model, dataloader_val, device)
         else:
-            train_1.train(args, model, optimizer, dataloader_train, dataloader_val, device)        ## train loop
-            train_1.val(args, model, dataloader_val, device)                                        # final test
+            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device)        ## train loop
+            val(args, model, dataloader_val, device)                                        # final test
 
 
 
 if __name__ == "__main__":
     main()
     
+    # TODO: train FDA 3x with different betas
+    
+    # TODO: 1 check the test mbt
+    # TODO: check pseudo generation
+    # TODO: debug 1
+    
+    # TODO: debug new eval
+    # TODO: debug new aug and pseudo
 
-    
-    # TODO: 1 check the test mbt, check pseudo generation
-    # TODO: debug
-    # TODO: 2 move evaluation function to separate file as we always use the same function
-    # TODO: debug
-    
     
     # TODO: 3 join cityscapes and cityscapes ssl into 1
     # TODO: debug
-    # TODO: 4 move aug and pseudo label gen into utils folder with utils
-    # TODO: debug
+    
     
     # TODO: hide the dataloader and the preprocessing in a function
     # TODO: set the datasets based on the training method
