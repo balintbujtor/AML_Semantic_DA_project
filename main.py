@@ -7,24 +7,14 @@ import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
 import trainings.val as val
 from utils.utils import *
+from utils.fda import test_multi_band_transfer, pseudo_label_gen
 from model.model_stages import BiSeNet
 from datasets.cityscapes import CityScapes
 from datasets.gta5 import GTA5
 
 
 def main():
-    args = parse_args()
-
-    # Handling checkpoint saves in a sub-folder
-    save_keyword = args.save_keyword
-    save_model_path = args.save_model_path
-    save_subdir_path = make_saveDir(save_model_path,save_keyword)
-
-    val_only = True if args.validation_only else False
-
-    aug_method = args.aug_method
-
-
+    
     # Fixing the random seeds
     random_seed = 42
     np.random.seed(random_seed)
@@ -33,11 +23,19 @@ def main():
     torch.manual_seed(random_seed)
     torch.cuda.manual_seed(random_seed)
     torch.cuda.manual_seed_all(random_seed)
+       
+    args = parse_args()
 
-
-    training_method = args.training_method
+    # Handling checkpoint saves in a sub-folder
+    save_keyword = args.save_keyword
+    save_model_path = args.save_model_path
+    save_subdir_path = make_saveDir(save_model_path,save_keyword)
+    val_only = True if args.validation_only else False
+    aug_method = args.aug_method
     
-    match training_method:
+    action = args.action
+    
+    match action:
         
         case 'train_simple_cityscapes':
             train_dataset = 'cityscapes'
@@ -62,12 +60,18 @@ def main():
         
         case 'val_mbt':
             val_dataset = 'cityscapes' 
+        
+        case 'generate_pseudo_labels':
+            print('you forgot to do me') # TODO
             
         case 'train_ssl_fda':
             train_dataset = 'gta5'
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
-     
+
+        case _:
+            print('Training method not supported \n')
+
 
     if train_dataset == 'cityscapes':
         print("dataloader_train is on cityscapes")
@@ -87,6 +91,7 @@ def main():
 
     if 'gta5' in (train_dataset,target_dataset,val_dataset):
         
+        # TODO: move this to the GTA5 class
         directory = "GTA5\images"
         dataset_size = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
         indices = list(range(dataset_size))
@@ -103,18 +108,18 @@ def main():
         # Setting the dataloaders
         if args.training_dataset == 'gta5':
             print("dataloader_train is on gta5")
-            train_dataset = GTA5(aug_method=aug_method, training_method=training_method)
+            train_dataset = GTA5(aug_method=aug_method, training_method=action)
             dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
             
         if args.target_dataset == 'gta5':
             print("dataloader_target is on gta5")
             
-            target_dataset = GTA5(aug_method='', training_method=training_method)
+            target_dataset = GTA5(aug_method='', training_method=action)
             dataloader_target = DataLoader(target_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
 
         if val_dataset == 'gta5':
             print("dataloader_val is on gta5")
-            val_dataset = GTA5(aug_method='', training_method=training_method)
+            val_dataset = GTA5(aug_method='', training_method=action)
             dataloader_val = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=args.num_workers, drop_last=False, sampler=valid_sampler)
 
 
@@ -128,7 +133,6 @@ def main():
         model = torch.nn.DataParallel(model).cuda()
 
     ## optimizer
-    # build optimizer
     if args.optimizer == 'rmsprop':
         optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
         disc_optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
@@ -146,29 +150,53 @@ def main():
         return None
 
 
-    if args.training_method == 'train_FDA':
+    if action == 'train_simple_cityscapes' or action == 'train_simple_gta5':
         if val_only:
+            model.load_state_dict(torch.load(args.load_model_path))
+            val(args, model, dataloader_val, device)
+        else:
+            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword)        ## train loop
+            val(args, model, dataloader_val, device)
+            
+    elif action == 'val_gta5_transfer':
+        model.load_state_dict(torch.load(args.load_model_path))
+        val(args, model, dataloader_val, device)
+    
+    elif args.action == 'train_ADA':
+        if val_only:
+            model.load_state_dict(torch.load(args.load_model_path))
+            val(args, model, dataloader_val, device)    
+        else: 
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
+            val(args, model, dataloader_val, device)
+              
+    elif action == 'train_FDA':
+        if val_only:
+            model.load_state_dict(torch.load(args.load_model_path))
             val(args, model, dataloader_val, device)
         else:
             train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop
             val(args, model, dataloader_val, device)                                              # final test
-            
-    if args.training_method == 'train_ADA':
-        if val_only:
-            val(args, model, dataloader_val, device)    
-        else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
-            val(args, model, dataloader_val, device)                                                                          # final test
+    
+    elif action == 'val_mbt':
+        cp_model1 = "fill_me"
+        cp_model2 = "fill_me"
+        cp_model3 = "fill_me"
+        precision, miou = test_multi_band_transfer(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
+        print(f"Precision: {precision}, mIoU: {miou}")
 
-    else: #using standard training method
-        if val_only:
-            val(args, model, dataloader_val, device)
-        else:
-            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword)        ## train loop
-            val(args, model, dataloader_val, device)                                        # final test
-
-
-
+    elif action == 'generate_pseudo_labels':
+        # TODO
+        print('you forgot to do me')
+        
+    elif action == 'train_ssl_fda':
+        # TODO
+        print('you forgot to do me')
+        
+    else:
+        print('Training method not supported \n')
+        return None
+        
 if __name__ == "__main__":
     
     # TODO: train FDA 3x with different betas

@@ -321,24 +321,28 @@ def save_checkpoint(model, savePath=".",saveName = "checkpoint",includeTimestamp
 def parse_args():
 	parse = argparse.ArgumentParser()
 
-	parse.add_argument('--training_method', type=str, default='train_1', help='Method to call for training, train_1 or train_ADA or train_FDA.')
+	# main params
+	parse.add_argument('--action', type=str, default='', help='Action to perform.')
 	parse.add_argument('--aug_method', type=str, default='', help='Specify if and how data augmentation should be performed.')
 	parse.add_argument('--validation_only', action='store_true', help='Skip training and perform validation directly.')
 
+	# save / load params
 	parse.add_argument('--pretrain_path', dest='pretrain_path', type=str, default='')
+	parse.add_argument('--load_model_path', type=str, default=None, help='path to load model')
 	parse.add_argument('--save_model_path', type=str, default=None, help='path to save model')
+	parse.add_argument('--save_keyword', type=str, default='save', help='Keyword to be used on the checkpoint file.')
+
+	# misc params
 	parse.add_argument('--num_epochs', type=int, default=300, help='Number of epochs to train for')
+	parse.add_argument('--batch_size', type=int, default=2, help='Number of images in each batch')
+	parse.add_argument('--num_workers', type=int, default=4, help='num of workers')
 	parse.add_argument('--checkpoint_step', type=int, default=10, help='How often to save checkpoints (epochs)')
 	parse.add_argument('--validation_step', type=int, default=1, help='How often to perform validation (epochs)')
  
-	parse.add_argument('--batch_size', type=int, default=2, help='Number of images in each batch')
+	# hyperparameters
 	parse.add_argument('--learning_rate', type=float, default=0.01, help='learning rate used for train')
 	parse.add_argument('--disc_learning_rate', type=float, default=0.0001, help='learning rate used for train')
 	parse.add_argument('--optimizer', type=str, default='adam', help='optimizer, support rmsprop, sgd, adam')
-	parse.add_argument("--fda_beta", type=float, default=0.09, help="controls the size of the low-freq window to be swapped") # TODO: rename to fda-beta
- 
-	parse.add_argument('--num_workers', type=int, default=4, help='num of workers')
-
-	parse.add_argument('--save_keyword', type=str, default='save', help='Keyword to be used on the checkpoint file.')
+	parse.add_argument("--fda_beta", type=float, default=0.09, help="controls the size of the low-freq window to be swapped")
 	
 	return parse.parse_args()
