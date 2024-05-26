@@ -1,10 +1,11 @@
-from PIL import Image
 import torch
 import os
 import numpy as np
-from model.model_stages import BiSeNet
 import torch.nn as nn
 import torch.nn.functional as F
+from PIL import Image
+from model.model_stages import BiSeNet
+from utils.utils import *
 
 ## FDA
 # we are using the np version because they are working without major modifications to the original code
@@ -76,6 +77,72 @@ class EntropyLoss(nn.Module):
 		return ent_loss_value
 
 
+def test_multi_band_transfer(args, 
+                             dataloader_target_val,
+                             checkpoint1_path, 
+                             checkpoint2_path, 
+                             checkpoint3_path,
+                             device):
+
+    hist = np.zeros((args.num_classes, args.num_classes))
+    precision_record = []
+    
+    backbone = args.backbone
+    
+    model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model1.load_state_dict(torch.load(checkpoint1_path))
+    model1.eval()
+    model1.to(device)
+
+    model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model2.load_state_dict(torch.load(checkpoint2_path))
+    model2.eval()
+    model2.to(device)
+    
+    model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model3.load_state_dict(torch.load(checkpoint3_path))
+    model3.eval()
+    model3.to(device)
+
+    with torch.no_grad():
+        for i, (data, label, _) in enumerate(dataloader_target_val):
+            
+            data = data.to(device)
+            label = label.long.to(device)
+            
+            pred_1, _, _ = model1(data)
+            pred_2, _, _ = model2(data)
+            pred_3, _, _ = model3(data)
+
+            pred = (pred_1 + pred_2 + pred_3) / 3
+
+            pred = pred.squeeze(0)
+            pred = reverse_one_hot(pred)
+            pred = np.array(pred.cpu())
+
+            # get RGB label image
+            label = label.squeeze()
+            label = np.array(label.cpu())
+
+            # compute per pixel accuracy
+            precision = compute_global_accuracy(pred, label)
+            hist += fast_hist(label.flatten(), pred.flatten(), args.num_classes)
+
+            # there is no need to transform the one-hot array to visual RGB array
+            # pred = colour_code_segmentation(np.array(pred), label_info)
+            # label = colour_code_segmentation(np.array(label), label_info)
+            
+            precision_record.append(precision)
+
+        precision = np.mean(precision_record)
+        miou_list = per_class_iu(hist)
+        miou = np.mean(miou_list)
+        print('precision per pixel for test: %.3f' % precision)
+        print('mIoU for validation: %.3f' % miou)
+        print(f'mIoU per class: {miou_list}')
+
+        return precision, miou
+
 def pseudo_label_gen(args, 
                      dataloader_target_val,
                      checkpoint1_path, 
@@ -86,7 +153,7 @@ def pseudo_label_gen(args,
     ## We need the weights from training FDA on different Betas
     ## let's say we're usind 3 betas as the repo
 
-    # TODO check
+    # TODO check, maybe not needed
     if not os.path.exists(save_path):
         os.makedirs(save_path)
         
@@ -117,8 +184,8 @@ def pseudo_label_gen(args,
             label = label.long.to(device)
             
             pred_1, _, _ = model1(data)
-            pred_2 = model2(data)
-            pred_3 = model3(data)
+            pred_2, _, _ = model2(data)
+            pred_3, _, _ = model3(data)
 
             pred = (pred_1 + pred_2 + pred_3) / 3
             pred = torch.nn.functional.softmax(pred, dim=1)

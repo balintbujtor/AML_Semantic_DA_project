@@ -248,8 +248,7 @@ if __name__ == "__main__":
     # TODO: check pseudo generation
     # TODO: debug 1
     
-    # TODO: debug new eval
-    # TODO: debug new aug and pseudo
+    # TODO: debug new pseudo
 
     
     # TODO: 3 join cityscapes and cityscapes ssl into 1
