@@ -35,6 +35,10 @@ def main():
     
     action = args.action
     
+    train_dataset = None
+    target_dataset = None
+    val_dataset = None
+    
     match action:
         
         case 'train_simple_cityscapes':
@@ -200,15 +204,17 @@ def main():
 if __name__ == "__main__":
     
     # TODO: train FDA 3x with different betas
-    
+
     # TODO: debug the mbt
     # TODO: debug pseudo generation
+    # TODO: debug the SSL FDA
     
-    # TODO: 3 join cityscapes and cityscapes ssl into 1
-    # TODO: debug
+    # TODO: perfrom MBT
+    # TODO: generate pseudo labels
+    # TODO: train SSL FDA
     
+    # TODO: 3 join cityscapes and cityscapes ssl into 1    
     # TODO: debug the refactored code
-    
     # TODO: comment the code
 
     main()
