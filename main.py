@@ -133,7 +133,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     
-    if device == 'cuda':
+    if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
 
     ## optimizer
@@ -203,6 +203,8 @@ def main():
         
 if __name__ == "__main__":
     
+    # TODO: debug the refactored code
+
     # TODO: train FDA 3x with different betas
 
     # TODO: debug the mbt
@@ -214,7 +216,6 @@ if __name__ == "__main__":
     # TODO: train SSL FDA
     
     # TODO: 3 join cityscapes and cityscapes ssl into 1    
-    # TODO: debug the refactored code
     # TODO: comment the code
 
     main()
