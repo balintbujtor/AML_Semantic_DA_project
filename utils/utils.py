@@ -303,6 +303,12 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
+def make_saveDir(path,saveName):
+	dirName = saveName + '_'+ datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S')
+	dirPath =  os.path.join(path, dirName)
+	os.mkdir(dirPath)
+	return dirPath+'/'
+
 
 def save_checkpoint(model, savePath=".",saveName = "checkpoint",includeTimestamp = True):
 	os.makedirs(savePath, exist_ok=True)
@@ -346,5 +352,6 @@ def parse_args():
 	parse.add_argument('--num_workers', type=int, default=4, help='num of workers')
 	parse.add_argument('--cuda', type=str, default='0', help='GPU ids used for training')
 	parse.add_argument('--use_gpu', type=bool, default=True, help='whether to user gpu for training')
- 
+	parse.add_argument('--save_keyword', type=str, default='', help='Keyword to be used on the checkpoint file.')
+	
 	return parse.parse_args()

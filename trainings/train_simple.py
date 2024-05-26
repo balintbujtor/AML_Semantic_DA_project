@@ -13,7 +13,7 @@ from val import val
 logger = logging.getLogger()
 
 
-def train(args, model, optimizer, dataloader_train, dataloader_val, device):
+def train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword):
     writer = SummaryWriter(comment=''.format(args.optimizer))
 
     scaler = amp.GradScaler()
@@ -54,12 +54,14 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device):
         writer.add_scalar('epoch/loss_epoch_train', float(loss_train_mean), epoch)
         print('loss for train : %f' % (loss_train_mean))
         if epoch % args.checkpoint_step == 0 and epoch != 0:
-            save_checkpoint(model,args.save_model_path,'latest')
+            saveName = save_keyword + '-latest'
+            save_checkpoint(model,save_subdir_path,saveName,includeTimestamp=False)
 
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
             if miou > max_miou:
                 max_miou = miou
-            save_checkpoint(model,args.save_model_path,'best')           
+                saveName = save_keyword + '-best'
+                save_checkpoint(model,save_subdir_path,saveName,includeTimestamp=False)           
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)

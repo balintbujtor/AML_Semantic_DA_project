@@ -23,6 +23,11 @@ def main():
     root_dir = args.root_dir #currently not used, to reimplement to match new structure
     split = args.split
 
+    # Handling checkpoint saves in a sub-folder
+    save_keyword = args.save_keyword
+    save_model_path = args.save_model_path
+    save_subdir_path = make_saveDir(save_model_path,save_keyword)
+
     val_dataset = args.validation_dataset if args.validation_dataset != '' else args.training_dataset
     val_only = True if args.validation_only else False
 
@@ -73,7 +78,7 @@ def main():
 
         if args.training_dataset == 'cityscapes':
             print("dataloader_train is on cityscapes")
-            train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms)
+            train_dataset = CityScapes(root_dir=root_dir, split=split, img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
             dataloader_train = DataLoader(train_dataset,
                                         batch_size=args.batch_size,
                                         shuffle=True,
@@ -123,10 +128,9 @@ def main():
                                                                          
         
         dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method=aug_method)
-        #TODO Separate the gta5 class calls for each mode: train,...
         #TODO Implement aug for cityscapes
-        #TODO Rename stuff augment.py
         
+        #TODO Change splitting process between train and val to be more like cityscapes
         dataset_size = len(dataset)
         indices = list(range(dataset_size))
         split = int(np.floor(validation_split * dataset_size))
@@ -152,6 +156,8 @@ def main():
             
         if args.target_dataset == 'gta5':
             print("dataloader_target is on gta5")
+            #HOTFIX: Redeclaring the dataset to avoid using data augmentation on target
+            dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method='')
             dataloader_target = DataLoader(dataset, 
                                         batch_size=args.batch_size,
                                         shuffle=False,
@@ -162,6 +168,8 @@ def main():
 
         if val_dataset == 'gta5':
             print("dataloader_val is on gta5")
+            #HOTFIX: Redeclaring the dataset to avoid using data augmentation on validation
+            dataset = GTA5(root=Path(args.root_dir), img_transforms=std_img_transforms, lbl_transforms=std_lbl_transforms,aug_method='')
             dataloader_val = DataLoader(dataset, 
                                         batch_size=1,
                                         shuffle=False,
@@ -220,20 +228,19 @@ def main():
         if val_only:
             val(args, model, dataloader_val, device)    
         else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device)      ## train loop
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
             val(args, model, dataloader_val, device)                                                                          # final test
 
     else: #using standard training method
         if val_only:
             val(args, model, dataloader_val, device)
         else:
-            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device)        ## train loop
+            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword)        ## train loop
             val(args, model, dataloader_val, device)                                        # final test
 
 
 
 if __name__ == "__main__":
-    main()
     
     # TODO: train FDA 3x with different betas
     
@@ -255,3 +262,6 @@ if __name__ == "__main__":
     # TODO: debug
     
     # TODO: comment and refactor the code
+
+    main()
+
