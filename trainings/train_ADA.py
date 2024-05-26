@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
-import imp
-from tkinter import Variable
 import torch
 import logging
 import numpy as np

@@ -2,13 +2,12 @@ import os
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Tuple
-from pathlib import Path
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset as torchDataset
 from datasets.cityscapes import CityScapes
 import random as rd
-import utils.augment as augment
+import utils.transforms as transforms
 
 
 class BaseGTALabels(metaclass=ABCMeta):
@@ -111,11 +110,8 @@ class GTA5(torchDataset):
             return lbl_path
 
     def __init__(self, 
-                 root: Path,
-                 labels_source: str = "GTA5",
-                 img_transforms=None,
-                 lbl_transforms=None,
-                 aug_method: str = ''
+                 aug_method: str,
+                 training_method: str = '',
                 ):
         """
 
@@ -123,10 +119,9 @@ class GTA5(torchDataset):
             this is the directory path for GTA5 data
             must be the following
         """
-        self.root = root
-        self.labels_source = labels_source
-        self.img_transforms = img_transforms
-        self.lbl_transforms = lbl_transforms                      
+        self.root = "GTA5"
+        self.training_method = training_method
+        self.labels_source = self.root                   
         self.paths = self.PathPair_ImgAndLabel(root=self.root, labels_source=self.labels_source)
         self.aug_method = aug_method
         
@@ -145,18 +140,20 @@ class GTA5(torchDataset):
         # IMPORTANT to convert to trainId to match with the Cityscapes labels
         lbl = Image.fromarray(np.array(self.convert_to_trainId(lbl),dtype='uint8'))
 
-        # Apply passed transformations first
-        if self.img_transforms is not None:
-            img = self.img_transforms(img)
-        
-        if self.lbl_transforms is not None:
-            lbl = self.lbl_transforms(lbl)
+        # Apply std transformations
+        if self.training_method == 'train_fda' or self.training_method == 'train_ssl_fda' :
+            img = transforms.img_std_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
 
-        # Apply augmentation next
+        else:
+            img = transforms.img_std_transformations["std_gta5"](img)
+            lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
+
+        # Apply augmentation
         if self.aug_method != '':
             if rd.random() < 0.5:
-                img = augment.aug_transformations[self.aug_method](img)
-                lbl = augment.label_transformations[self.aug_method](lbl)
+                img = transforms.aug_transformations[self.aug_method](img)
+                lbl = transforms.label_transformations[self.aug_method](lbl)
                       
         return img, lbl
 

@@ -7,7 +7,7 @@ from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 from typing import Any, Tuple
 import random as rd
-import utils.augment as augment
+import utils.transforms as transforms
 
 class CityScapes(VisionDataset):
     """
@@ -63,12 +63,9 @@ class CityScapes(VisionDataset):
     id_to_color = np.array([c.color for c in classes])
     
     
-    def __init__(self, 
-                 root_dir: str = 'Cityscapes\Cityspaces',
+    def __init__(self,
+                 aug_method,
                  split: str = 'train', 
-                 img_transforms = None,
-                 lbl_transforms = None,
-                 aug_method: str = ''
         ):
         """
         Initialize the CityScapes dataset.
@@ -85,10 +82,8 @@ class CityScapes(VisionDataset):
 
         assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
         
-        self.root_dir = root_dir
+        self.root_dir = "Cityscapes/Cityspaces/"
         self.split = split
-        self.img_transforms = img_transforms
-        self.lbl_transforms = lbl_transforms
         self.aug_method = aug_method
 
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
@@ -127,18 +122,15 @@ class CityScapes(VisionDataset):
         img = Image.open(self.image_paths[idx]).convert('RGB')
         lbl = Image.open(self.label_paths[idx])
 
-        # Apply passed transformations
-        if self.img_transforms is not None:
-            img = self.img_transforms(img)
-        
-        if self.lbl_transforms is not None:   
-            lbl = self.lbl_transforms(lbl)
+        # Apply std transformation
+        img = transforms.img_std_transformations["std_cityscapes"](img)
+        lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
 
-        # Apply augmentation next
+        # Apply augmentation
         if self.aug_method != '':
             if rd.random() < 0.5:
-                img = augment.aug_transformations[self.aug_method](img)
-                lbl = augment.label_transformations[self.aug_method](lbl)
+                img = transforms.aug_transformations[self.aug_method](img)
+                lbl = transforms.label_transformations[self.aug_method](lbl)
         
         
         return img, lbl

@@ -8,13 +8,10 @@ from tensorboardX import SummaryWriter
 from utils.utils import *
 from utils.fda import *
 from tqdm import tqdm
-from torchvision.transforms import v2
 from trainings.val import val
 
 
 logger = logging.getLogger()
-normalize = v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-
 
 # We will use both GTA5 and Cityscapes for the training
 #   dataloader_source is the dataloader of GTA5
@@ -58,9 +55,9 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
             target_in_target = data_target
 
             # 2. Subtract the mean / normalize it               
-            source_image = normalize(source_in_target.clone()).cuda()
-            target_image = normalize(target_in_target.clone()).cuda()
-            label = label.long().cuda()
+            source_image = source_in_target.clone().to(device)
+            target_image = target_in_target.clone().to(device)
+            label = label.long().to(device)
          
 
             ## clearing the gradients of all optimized variables. This is necessary 
