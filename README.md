@@ -19,11 +19,11 @@ Common parameters:
 
 | Experiment                                       | Accuracy (%) | mIoU (%) | Time (avg per-epoch) | saveFile |
 | ------------------------------------------------ | ------------ | -------- | -------------------- | -------- |
-| training & validation on Cityscapes              |     0.787    |  0.444   |                      |          |
-| training & validation on GTA5                    |     0.782    |  0.495   |                      |          |
-| Domain shift evaluation GTA5>Cityscapes          |     0.521    |  0.115   |                      |          |
-| ADA GTA5>Cityscapes without data augmentation    |     0.594    |  0.193   |                      |          |
-| ADA GTA5>Cityscapes with data augmentation       |     0.629    |  0.161   |                      |          |
+| training & validation on Cityscapes              |     78.7     |  44.4    |                      |          |
+| training & validation on GTA5                    |     78.2     |  49.5    |                      |          |
+| Domain shift evaluation GTA5>Cityscapes          |     52.1     |  11.5    |                      |          |
+| ADA GTA5>Cityscapes without data augmentation    |     59.4     |  19.3    |                      |          |
+| ADA GTA5>Cityscapes with data augmentation       |     67.2     |  20.1    |                      |          |
 | SSL FDA GTA5>Cityscapes with data augmentation   |              |          |                      |          |
 | SSL FDA GTA5>Cityscapes without data augmentation|              |          |                      |          |
 
@@ -77,14 +77,14 @@ mIoU per class: [6.81801228e-01 1.07932154e-01 6.66776069e-01 5.99369935e-02
 
   /!\ to redo, values for only 30 epochs currently
 saveFile:
-date: 24/05/2024
-precision per pixel for test: 0.629
-mIoU for validation: 0.161
-mIoU per class: [8.07825793e-01 5.14077634e-02 5.64487377e-01 3.71146165e-02
- 0.00000000e+00 2.16058513e-02 1.15261030e-02 2.17890649e-04
- 5.50525005e-01 8.24728407e-02 5.85052974e-01 0.00000000e+00
- 0.00000000e+00 3.28731335e-01 1.03742343e-02 0.00000000e+00
- 5.60869385e-04 0.00000000e+00 0.00000000e+00]
+date: 26/05/2024
+precision per pixel for test: 0.672
+mIoU for validation: 0.201
+mIoU per class: [8.55649679e-01 8.32756948e-02 6.50656282e-01 7.27817810e-02
+ 3.19655737e-03 8.41106085e-02 2.09969896e-02 2.44836400e-04
+ 6.60987629e-01 1.58780603e-01 6.76856284e-01 1.07935027e-02
+ 0.00000000e+00 5.04739004e-01 3.91791383e-02 2.96842603e-04
+ 1.00073053e-05 1.37119106e-03 0.00000000e+00]
   
   
   
