@@ -11,7 +11,7 @@ from utils.utils import *
 import torch.nn.functional as F
 from tqdm import tqdm
 from model.discriminator import Discriminator
-from val import val
+from trainings.val import val
 
 
 logger = logging.getLogger()

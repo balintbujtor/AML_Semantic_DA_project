@@ -9,7 +9,7 @@ from utils.utils import *
 from utils.fda import *
 from tqdm import tqdm
 from torchvision.transforms import v2
-from val import val
+from trainings.val import val
 
 
 logger = logging.getLogger()

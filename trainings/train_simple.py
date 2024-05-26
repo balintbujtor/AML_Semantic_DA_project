@@ -7,7 +7,7 @@ import torch.cuda.amp as amp
 from tensorboardX import SummaryWriter
 from utils.utils import *
 from tqdm import tqdm
-from val import val
+from trainings.val import val
 
 
 logger = logging.getLogger()

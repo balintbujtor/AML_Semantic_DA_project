@@ -67,7 +67,7 @@ class CityScapesSSL(VisionDataset):
                  img_transforms = None,
                  lbl_transforms = None,
         ):
-        super(CityScapes, self).__init__()
+        super(CityScapesSSL, self).__init__()
 
         assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
         
