@@ -110,12 +110,12 @@ def main():
         valid_sampler = SubsetRandomSampler(val_indices)
 
         # Setting the dataloaders
-        if args.training_dataset == 'gta5':
+        if train_dataset == 'gta5':
             print("dataloader_train is on gta5")
             train_dataset = GTA5(aug_method=aug_method, training_method=action)
             dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
             
-        if args.target_dataset == 'gta5':
+        if target_dataset == 'gta5':
             print("dataloader_target is on gta5")
             
             target_dataset = GTA5(aug_method='', training_method=action)
@@ -166,7 +166,7 @@ def main():
         model.load_state_dict(torch.load(args.load_model_path))
         val(args, model, dataloader_val, device)
     
-    elif args.action == 'train_ADA':
+    elif action == 'train_ada':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
             val(args, model, dataloader_val, device)    
@@ -174,7 +174,7 @@ def main():
             train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
             val(args, model, dataloader_val, device)
               
-    elif action == 'train_FDA':
+    elif action == 'train_fda':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
             val(args, model, dataloader_val, device)
@@ -203,8 +203,6 @@ def main():
         
 if __name__ == "__main__":
     
-    # TODO: debug the refactored code
-
     # TODO: train FDA 3x with different betas
 
     # TODO: debug the mbt

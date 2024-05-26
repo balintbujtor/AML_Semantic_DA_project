@@ -8,7 +8,7 @@ from torch.utils.data import Dataset as torchDataset
 from datasets.cityscapes import CityScapes
 import random as rd
 import utils.transforms as transforms
-
+from pathlib import Path
 
 class BaseGTALabels(metaclass=ABCMeta):
     pass
@@ -97,7 +97,7 @@ class GTA5(torchDataset):
             return img_path, lbl_path
 
         def create_imgpath_list(self):
-            img_dir = self.root / self.IMG_DIR_NAME
+            img_dir = Path(os.path.join(self.root,self.IMG_DIR_NAME))
             img_path = [path for path in img_dir.glob(f"*{self.SUFFIX}")]
             return img_path
 
