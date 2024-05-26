@@ -244,16 +244,11 @@ if __name__ == "__main__":
     
     # TODO: train FDA 3x with different betas
     
-    # TODO: 1 check the test mbt
-    # TODO: check pseudo generation
-    # TODO: debug 1
-    
-    # TODO: debug new pseudo
-
+    # TODO: debug the mbt
+    # TODO: debug pseudo generation
     
     # TODO: 3 join cityscapes and cityscapes ssl into 1
     # TODO: debug
-    
     
     # TODO: hide the dataloader and the preprocessing in a function
     # TODO: set the datasets based on the training method
