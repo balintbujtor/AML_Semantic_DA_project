@@ -20,7 +20,7 @@ def val(model, dataloader, device, num_classes):
         model.eval()
         precision_record = []
         hist = np.zeros((num_classes, num_classes))
-        for i, (data, label, _) in enumerate(dataloader):
+        for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
 
             data = data.to(device)
