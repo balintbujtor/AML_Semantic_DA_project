@@ -1,9 +1,20 @@
 import torch
-
 from utils.utils import *
 
 
 def val(args, model, dataloader, device):
+    """
+    Validation function for the models across all training scripts.
+
+    Args:
+        args (_type_): Arguments that are specified in the command line when launching the main script.
+        model (_type_): The model that is being trained.
+        dataloader (_type_): The dataloader for the validation dataset.
+        device (_type_): The device to train on, either cuda or cpu
+
+    Returns:
+        the precision and mIoU for the validation dataset.
+    """
     print('start val!')
     with torch.no_grad():
         model.eval()

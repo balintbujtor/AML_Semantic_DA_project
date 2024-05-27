@@ -1,13 +1,19 @@
 import torch.nn as nn
-import torch.nn.functional as F
-
 
 class Discriminator(nn.Module):
+	"""
+	Implementation of the Discriminator Network for the adversarial training.
+	"""
+	def __init__(self, num_classes: int, ndf: int = 64):
+		"""
+		Initializes the Discriminator Network, by creating the network layers.
 
-	def __init__(self, num_classes, ndf = 64):
+		Args:
+			num_classes (int): number of classes in the dataset
+			ndf (int, optional): Number of Discriminator Filters. Defaults to 64.
+		"""
 		super(Discriminator, self).__init__()
 
-		# ndf = Number of Discriminator Filters
   
 		self.conv1 = nn.Conv2d(num_classes, ndf, kernel_size=4, stride=2, padding=1)
 		self.conv2 = nn.Conv2d(ndf, ndf*2, kernel_size=4, stride=2, padding=1)

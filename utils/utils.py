@@ -1,3 +1,4 @@
+from xmlrpc.client import boolean
 import torch.nn as nn
 import torch
 import numpy as np
@@ -324,16 +325,16 @@ def parse_args():
 	# main params
 	parse.add_argument('--action', type=str, default='', help='Action to perform.')
 	parse.add_argument('--aug_method', type=str, default='', help='Specify if and how data augmentation should be performed.')
-	parse.add_argument('--validation_only', action='store_true', help='Skip training and perform validation directly.')
+	parse.add_argument('--validation_only', type=boolean, default=False, help='Skip training and perform validation directly.')
 
 	# save / load params
-	parse.add_argument('--pretrain_path', dest='pretrain_path', type=str, default='')
-	parse.add_argument('--load_model_path', type=str, default=None, help='path to load model')
+	parse.add_argument('--pretrain_path', dest='pretrain_path', type=str, default='', help='path to load pretrained BACKBONE')
+	parse.add_argument('--load_model_path', type=str, default=None, help='path to load pretrained model')
 	parse.add_argument('--save_model_path', type=str, default=None, help='path to save model')
 	parse.add_argument('--save_keyword', type=str, default='save', help='Keyword to be used on the checkpoint file.')
 
 	# misc params
-	parse.add_argument('--num_epochs', type=int, default=300, help='Number of epochs to train for')
+	parse.add_argument('--num_epochs', type=int, default=50, help='Number of epochs to train for')
 	parse.add_argument('--batch_size', type=int, default=2, help='Number of images in each batch')
 	parse.add_argument('--num_workers', type=int, default=4, help='num of workers')
 	parse.add_argument('--checkpoint_step', type=int, default=10, help='How often to save checkpoints (epochs)')

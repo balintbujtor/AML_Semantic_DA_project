@@ -13,12 +13,23 @@ from trainings.val import val
 
 logger = logging.getLogger()
 
-# We will use both GTA5 and Cityscapes for the training
-#   dataloader_source is the dataloader of GTA5
-#   data_loader_target is the dataloader of Cityscapes
-# We validate only on Cityscapes
+
 def train(args, model, optimizer, dataloader_source, dataloader_target, dataloader_val, device, beta=0.09, ita=2, entW=0.005):
-    
+    """
+    Training function for Fourier Domain Adaptation (FDA).
+
+    Args:
+        args (_type_): Arguments that are specified in the command line when launching the main script.
+        model (_type_): The model that is being trained.
+        optimizer (_type_): the optimizier used for training. (Adam)
+        dataloader_train (_type_): The dataloader for the training dataset. (GTA5)
+        dataloader_val (_type_): The dataloader for the validation dataset. (Cityscapes)
+        device (_type_): The device to train on, either cuda or cpu
+        beta (float, optional): Hyperparameter that controls the low-freq windows size to be swapped.
+                                Defaults to 0.09.
+        ita (int, optional): coefficient for the Charbonnier penalty. Defaults to 2.
+        entW (float, optional): weight of the entropy minimization loss. Defaults to 0.005.
+    """
     max_miou = 0
     step = 0
     
@@ -26,56 +37,51 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
     # to handle small gradients and avoid vanishing gradients
     scaler = amp.GradScaler()
     
-    ## learning rate of the segmentation model
+    # learning rate of the  model
     learning_rate = args.learning_rate
    
-    ## -- Loss functions --
-    ## loss function for the segmentation model
+    # loss functions
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
     loss_entr = EntropyLoss()
     
     for epoch in range(args.num_epochs):
+        
+        loss_record = []
+        
         lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
-
-        ## Training loop
         model.train()
 
+        # tqdm prints the training status and information on the terminal
         tq = tqdm(total=min(len(dataloader_source),len(dataloader_target)) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr ))
         
-        ## Losses for the segmentation model
-        loss_record = []
-        
         for i, ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
 
-
-            # 1. Source to Target, Target to Target : Adapt source image to target image
+            # Source to Target, Target to Target : Adapt source image to target image
             source_in_target = FDA_source_to_target_np(data_source, data_target, L=beta)
             source_in_target = torch.from_numpy(source_in_target).float()
             target_in_target = data_target
-
-            # 2. Subtract the mean / normalize it               
+               
             source_image = source_in_target.clone().to(device)
             target_image = target_in_target.clone().to(device)
             label = label.long().to(device)
          
-
-            ## clearing the gradients of all optimized variables. This is necessary 
-            ## before computing the gradients for the current batch, 
-            ## as you don't want gradients from previous iterations affecting the current iteration.
+            # Clearing the gradients of all optimized variables.  
+            # This is necessary before computing the gradients for the current batch, 
+            # as you don't want gradients from previous iterations affecting the current iteration.
             optimizer.zero_grad()
             
-            # Train segmentation
-            # Loss for segmentation : Train on Source
             with amp.autocast():
-                source_output, source_out16, source_out32 = model(source_image)
-                target_output, _, _ = model(target_image)
                 
+                # Predict and compute the segmentation loss on the source domain
+                source_output, source_out16, source_out32 = model(source_image)
                 loss1 = loss_func(source_output, label.squeeze(1))
                 loss2 = loss_func(source_out16, label.squeeze(1))
                 loss3 = loss_func(source_out32, label.squeeze(1))
-                
                 loss_source = loss1 + loss2 + loss3
+                
+                # Predict and compute the entropy minimization loss on the target domain
+                target_output, _, _ = model(target_image)
                 loss_target = loss_entr(target_output, ita)
 
             # Total loss
@@ -97,15 +103,17 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
         writer.add_scalar('epoch/loss_epoch_train', float(loss_train_mean), epoch)
         print('loss for train : %f' % (loss_train_mean))
         
+        # Save the model every checkpoint_step epochs
         if epoch % args.checkpoint_step == 0 and epoch != 0:
             import os
             if not os.path.isdir(args.save_model_path):
                 os.mkdir(args.save_model_path)
             torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'latest.pth'))
 
-
+        # Validate the model every validation_step epochs
         if epoch % args.validation_step == 0 and epoch != 0:
             precision, miou = val(args, model, dataloader_val, device)
+            
             if miou > max_miou:
                 max_miou = miou          
                 import os,datetime

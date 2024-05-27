@@ -35,6 +35,11 @@ def main():
     
     action = args.action
     
+    train_dataset = None
+    target_dataset = None
+    val_dataset = None
+    
+    # selecting the datasets based on the action
     match action:
         
         case 'train_simple_cityscapes':
@@ -106,12 +111,12 @@ def main():
         valid_sampler = SubsetRandomSampler(val_indices)
 
         # Setting the dataloaders
-        if args.training_dataset == 'gta5':
+        if train_dataset == 'gta5':
             print("dataloader_train is on gta5")
             train_dataset = GTA5(aug_method=aug_method, training_method=action)
             dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
             
-        if args.target_dataset == 'gta5':
+        if target_dataset == 'gta5':
             print("dataloader_target is on gta5")
             
             target_dataset = GTA5(aug_method='', training_method=action)
@@ -123,16 +128,16 @@ def main():
             dataloader_val = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=args.num_workers, drop_last=False, sampler=valid_sampler)
 
 
-    ## model
+    # model
     model = BiSeNet(backbone='CatmodelSmall', n_classes=19, pretrain_model=args.pretrain_path, use_conv_last=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     
-    if device == 'cuda':
+    if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
 
-    ## optimizer
+    # optimizer
     if args.optimizer == 'rmsprop':
         optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
         disc_optimizer = torch.optim.RMSprop(model.parameters(), args.learning_rate)
@@ -149,7 +154,7 @@ def main():
         print('Optimizer not supported \n')
         return None
 
-
+    # calling function to perform requested action
     if action == 'train_simple_cityscapes' or action == 'train_simple_gta5':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
@@ -162,7 +167,7 @@ def main():
         model.load_state_dict(torch.load(args.load_model_path))
         val(args, model, dataloader_val, device)
     
-    elif args.action == 'train_ADA':
+    elif action == 'train_ada':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
             val(args, model, dataloader_val, device)    
@@ -170,7 +175,7 @@ def main():
             train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
             val(args, model, dataloader_val, device)
               
-    elif action == 'train_FDA':
+    elif action == 'train_fda':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
             val(args, model, dataloader_val, device)
@@ -179,7 +184,7 @@ def main():
             val(args, model, dataloader_val, device)                                              # final test
     
     elif action == 'val_mbt':
-        cp_model1 = "fill_me"
+        cp_model1 = "fill_me" # TODO
         cp_model2 = "fill_me"
         cp_model3 = "fill_me"
         precision, miou = test_multi_band_transfer(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
@@ -200,16 +205,15 @@ def main():
 if __name__ == "__main__":
     
     # TODO: train FDA 3x with different betas
+    # TODO: upload the trained models
     
     # TODO: debug the mbt
     # TODO: debug pseudo generation
+    # TODO: debug the SSL FDA
     
-    # TODO: 3 join cityscapes and cityscapes ssl into 1
-    # TODO: debug
+    # TODO: perfrom MBT
+    # TODO: generate pseudo labels
+    # TODO: train SSL FDA
     
-    # TODO: debug the refactored code
-    
-    # TODO: comment the code
-
     main()
 
