@@ -134,8 +134,8 @@ class CityScapes(VisionDataset):
         # Apply augmentation
         if self.aug_method != '':
             if rd.random() < 0.5:
-                img = transforms.aug_transformations[self.aug_method](img)
-                lbl = transforms.label_transformations[self.aug_method](lbl)
+                img = transforms.img_aug_transformations[self.aug_method](img)
+                lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)
         
         
         return img, lbl
