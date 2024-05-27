@@ -15,7 +15,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword):
+def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, num_classes, device, save_subdir_path, save_keyword):
     """
     Adversarial training function.
     The training is performed on the GTA5 dataset as the source domain,
@@ -43,7 +43,6 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     Lambda_adv = 0.0002
     max_miou = 0
     step = 0  
-    num_classes = 19
 
     # Labels for disc training
     label_source = 0
@@ -66,7 +65,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     adv_loss_func  = torch.nn.BCEWithLogitsLoss()
 
     # Initialize discriminator
-    disc_model = torch.nn.DataParallel(Discriminator(num_classes=19)).to(device) 
+    disc_model = torch.nn.DataParallel(Discriminator(num_classes=num_classes)).to(device) 
     disc_optimizer.zero_grad()
     
     for epoch in range(args.num_epochs):

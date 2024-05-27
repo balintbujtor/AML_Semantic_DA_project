@@ -39,6 +39,8 @@ def main():
     target_dataset = None
     val_dataset = None
     
+    num_classes = 19
+
     # selecting the datasets based on the action
     match action:
         
@@ -158,36 +160,36 @@ def main():
     if action == 'train_simple_cityscapes' or action == 'train_simple_gta5':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
-            val(args, model, dataloader_val, device)
+            val(model, dataloader_val, device, num_classes)
         else:
-            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword)        ## train loop
-            val(args, model, dataloader_val, device)
+            train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, num_classes, device, save_subdir_path, save_keyword)        ## train loop
+            val(model, dataloader_val, device, num_classes)
             
     elif action == 'val_gta5_transfer':
         model.load_state_dict(torch.load(args.load_model_path))
-        val(args, model, dataloader_val, device)
+        val(model, dataloader_val, device, num_classes)
     
     elif action == 'train_ada':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
-            val(args, model, dataloader_val, device)    
+            val(model, dataloader_val, device, num_classes)
         else: 
-            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
-            val(args, model, dataloader_val, device)
+            train_ADA.train(args, model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, num_classes, device, save_subdir_path, save_keyword)      ## train loop
+            val(model, dataloader_val, device, num_classes)
               
     elif action == 'train_fda':
         if val_only:
             model.load_state_dict(torch.load(args.load_model_path))
-            val(args, model, dataloader_val, device)
+            val(model, dataloader_val, device, num_classes)
         else:
-            train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop
-            val(args, model, dataloader_val, device)                                              # final test
+            train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, num_classes, device, beta=args.fda_beta)  ## train loop
+            val(model, dataloader_val, device, num_classes)                                            # final test
     
     elif action == 'val_mbt':
         cp_model1 = "fill_me" # TODO
         cp_model2 = "fill_me"
         cp_model3 = "fill_me"
-        precision, miou = test_multi_band_transfer(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
+        precision, miou = test_multi_band_transfer(args, dataloader_val, num_classes, cp_model1, cp_model2, cp_model3, device)
         print(f"Precision: {precision}, mIoU: {miou}")
 
     elif action == 'generate_pseudo_labels':

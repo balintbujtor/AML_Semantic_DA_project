@@ -13,7 +13,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train(args, model, optimizer, dataloader_train, dataloader_val, device, save_subdir_path, save_keyword):
+def train(args, model, optimizer, dataloader_train, dataloader_val, num_classes, device, save_subdir_path, save_keyword):
     """
     Simple training function for the initial STDC model.
 
@@ -29,7 +29,6 @@ def train(args, model, optimizer, dataloader_train, dataloader_val, device, save
     """
     max_miou = 0
     step = 0
-    num_classes = 19
 
     writer = SummaryWriter(comment=''.format(args.optimizer))
     scaler = amp.GradScaler()

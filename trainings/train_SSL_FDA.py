@@ -14,7 +14,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, device, beta=0.09, ita=2, entW=0.005):
+def train(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, num_classes, device, beta=0.09, ita=2, entW=0.005):
     """Training function for self-supervised learning with Fourier Domain Adaptation (SSL-FDA).
 
     Args:
@@ -33,7 +33,6 @@ def train(args, model, optimizer, dataloader_train_source, dataloader_train_targ
     """
     max_miou = 0
     step = 0
-    num_classes = 19
     
     writer = SummaryWriter(comment=''.format(args.optimizer))
     # to handle small gradients and avoid vanishing gradients
