@@ -2,15 +2,15 @@ import torch
 from utils.utils import *
 
 
-def val(args, model, dataloader, device):
+def val(model, dataloader, device, num_classes):
     """
     Validation function for the models across all training scripts.
 
     Args:
-        args (_type_): Arguments that are specified in the command line when launching the main script.
         model (_type_): The model that is being trained.
         dataloader (_type_): The dataloader for the validation dataset.
         device (_type_): The device to train on, either cuda or cpu
+        num_classes (int): number of classes used
 
     Returns:
         the precision and mIoU for the validation dataset.
@@ -19,7 +19,7 @@ def val(args, model, dataloader, device):
     with torch.no_grad():
         model.eval()
         precision_record = []
-        hist = np.zeros((args.num_classes, args.num_classes))
+        hist = np.zeros((num_classes, num_classes))
         for i, (data, label, _) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
 
@@ -38,7 +38,7 @@ def val(args, model, dataloader, device):
 
             # compute per pixel accuracy
             precision = compute_global_accuracy(predict, label)
-            hist += fast_hist(label.flatten(), predict.flatten(), args.num_classes)
+            hist += fast_hist(label.flatten(), predict.flatten(), num_classes)
 
             # there is no need to transform the one-hot array to visual RGB array
             # predict = colour_code_segmentation(np.array(predict), label_info)

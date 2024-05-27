@@ -43,6 +43,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
     Lambda_adv = 0.0002
     max_miou = 0
     step = 0  
+    num_classes = 19
 
     # Labels for disc training
     label_source = 0
@@ -188,7 +189,7 @@ def train(args, model, optimizer, disc_optimizer, dataloader_source, dataloader_
 
         # Validate the model every validation_step epochs
         if epoch % args.validation_step == 0 and epoch != 0:
-            precision, miou = val(args, model, dataloader_val, device)
+            precision, miou = val(model, dataloader_val, device, num_classes)
             
             # Save the model if the mIoU is the best so far
             if miou > max_miou:

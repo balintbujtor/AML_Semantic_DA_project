@@ -32,6 +32,7 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
     """
     max_miou = 0
     step = 0
+    num_classes = 19
     
     writer = SummaryWriter(comment=''.format(args.optimizer))
     # to handle small gradients and avoid vanishing gradients
@@ -112,7 +113,7 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
 
         # Validate the model every validation_step epochs
         if epoch % args.validation_step == 0 and epoch != 0:
-            precision, miou = val(args, model, dataloader_val, device)
+            precision, miou = val( model, dataloader_val, device, num_classes)
             
             if miou > max_miou:
                 max_miou = miou          
