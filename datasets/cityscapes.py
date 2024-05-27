@@ -65,7 +65,8 @@ class CityScapes(VisionDataset):
     
     def __init__(self,
                  aug_method,
-                 split: str = 'train', 
+                 split: str = 'train',
+                 is_pseudo: bool = False, 
         ):
         """
         Initialize the CityScapes dataset.
@@ -80,16 +81,18 @@ class CityScapes(VisionDataset):
         
         super(CityScapes, self).__init__()
 
-        assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
+        assert split in ['train', 'val'], "split should be 'train', or 'val'"
         
-        self.root_dir = "Cityscapes/Cityspaces/"
+        self.root_dir = "Cityscapes/Cityspaces/"    
         self.split = split
         self.aug_method = aug_method
 
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
+        label_dir = 'pseudo_labels' if is_pseudo else 'gtFine'
+        
         self.image_dir = os.path.join(self.root_dir, 'images', self.split)
-        self.label_dir = os.path.join(self.root_dir, 'gtFine', self.split)
+        self.label_dir = os.path.join(self.root_dir, label_dir, self.split)
 
         self.image_paths = []
         self.label_paths = []

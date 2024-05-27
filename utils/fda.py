@@ -1,3 +1,4 @@
+from email.mime import image
 import torch
 import os
 import numpy as np
@@ -148,14 +149,18 @@ def pseudo_label_gen(args,
                      checkpoint1_path, 
                      checkpoint2_path, 
                      checkpoint3_path,
-                     save_path,
-                     device):
+                     device,
+                     save_path: str = 'Cityscapes/Cityspaces/pseudo_labels',
+                     ):
     ## We need the weights from training FDA on different Betas
     ## let's say we're usind 3 betas as the repo
 
-    # TODO check, maybe not needed
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+    # 'train' or 'val'
+    split = dataloader_target_val.dataset.split
+    
+    save_path_w_mode = os.path.join(save_path, split)
+    if not os.path.exists(save_path_w_mode):
+        os.makedirs(save_path_w_mode)
         
     backbone = args.backbone
     model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
@@ -178,7 +183,7 @@ def pseudo_label_gen(args,
     image_names = []
     
     with torch.no_grad():
-        for i, (data, label, name) in enumerate(dataloader_target_val):
+        for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
             label = label.long.to(device)
@@ -193,7 +198,23 @@ def pseudo_label_gen(args,
             label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
-            image_names.append(name[0])
+            
+            for j in range(data.size(0)):
+                
+                image_path = dataloader_target_val.dataset.image_paths[i*args.batch_size + j]
+                
+                # TODO: check if it is correct
+                
+                # the first split keeps only the name of the image, the second split removes the extension
+                image_name = image_path.split('/')[-1].split('.')[0]
+                
+                # remove the last part of the name, i.e. '_leftImg8bit'
+                image_name = image_name.rsplit('_', 1)[0]
+                
+                # e.g. 'hanover_000000_000019_psedudo_labelTrainIds.png'
+                image_name = image_name + '_pseudo_labelTrainIds.png'
+                image_names.append(image_name)
+                
 
   # Each class has a threshold depending on the frequency of it 
   # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
@@ -211,7 +232,7 @@ def pseudo_label_gen(args,
     thres = np.array(thres)
     thres[thres>0.9]=0.9
     print( thres )
-
+    
     for index in range(len(dataloader_target_val)):
         name = image_names[index]
         label = predicted_label[index]
@@ -220,8 +241,14 @@ def pseudo_label_gen(args,
             label[   (prob<thres[i]) * (label==i)   ] = 255  
         output = np.asarray(label, dtype=np.uint8)
         output = Image.fromarray(output)
-        name = name.split('/')[-1]
-        output.save('%s/%s' % (args.save, name)) 
-
+        
+        city = name.split('_')[0]
+        
+        # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
+        save_path = os.path.join(save_path_w_mode, city)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        
+        output.save('%s/%s' % (save_path, name)) 
 
     return
