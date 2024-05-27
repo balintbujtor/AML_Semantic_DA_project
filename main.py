@@ -92,7 +92,7 @@ def main():
     if 'gta5' in (train_dataset,target_dataset,val_dataset):
         
         # TODO: move this to the GTA5 class
-        directory = "GTA5\images"
+        directory = "GTA5"
         dataset_size = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
         indices = list(range(dataset_size))
         validation_split = 0.2
