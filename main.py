@@ -213,7 +213,6 @@ if __name__ == "__main__":
     # TODO: generate pseudo labels
     # TODO: train SSL FDA
     
-    # TODO: 3 join cityscapes and cityscapes ssl into 1    
     # TODO: comment the code
 
     main()
