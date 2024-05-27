@@ -72,7 +72,10 @@ class GTA5Labels_TaskCV2017(BaseGTALabels):
 
 
 class GTA5(torchDataset):
-    
+    """
+    This class handles the GTA5 dataset.
+    It contains the PathPair_ImgAndLabel class that is used to create the list of image and label paths.
+    """
     label_map = GTA5Labels_TaskCV2017()
 
     train_id = np.array([label.train_id for label in CityScapes.classes])
@@ -114,10 +117,13 @@ class GTA5(torchDataset):
                  training_method: str = '',
                 ):
         """
+        Initializes the variables and saves the augmentation method.
 
-        :param root: (Path)
-            this is the directory path for GTA5 data
-            must be the following
+        Args:
+            aug_method (str): the augmentation method to use. Empty string for no aug, string code for the given aug method.
+            training_method (str, optional): If we use FDA training the image size of GTA5 and Cityscapes have to match.
+                In this case a different img transformation is used that makes the sizes equal. 
+                Defaults to ''.
         """
         self.root = "GTA5"
         self.training_method = training_method
@@ -128,7 +134,19 @@ class GTA5(torchDataset):
     def __len__(self):
         return len(self.paths)
 
-    def __getitem__(self, idx, isPath=False):
+    def __getitem__(self, idx: int, isPath: bool = False):
+        """
+            Returns the item based on the idx parameter. 
+            If isPath is True, it returns the paths of the image and label.
+            If the training method is FDA, the image is resized to match the Cityscapes dataset.
+            If an augmentation method is specified, it is applied with a probability of 0.5.
+        Args:
+            idx (int): _description_
+            isPath (bool, optional): if true only returns the paths. Defaults to False.
+
+        Returns:
+            _type_: either the paths or the images and labels
+        """
         img_path, lbl_path = self.paths[idx]
         if isPath:
             return img_path, lbl_path

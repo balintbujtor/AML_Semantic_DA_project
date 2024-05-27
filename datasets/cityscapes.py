@@ -69,14 +69,14 @@ class CityScapes(VisionDataset):
                  is_pseudo: bool = False, 
         ):
         """
-        Initialize the CityScapes dataset.
-
+        Initializes the CityScapes dataset.
+        1. Initializes the variables and ensures the correctness of the split
+        2. Cycles through the cities to save the image and label paths and ensures their lengths match
+        
         Args:
-            root_dir (str, optional): the root directory of the dataset. Defaults to 'Cityscapes\Cityspaces'.
+            aug_method (str): the augmentation method to use. Empty string for no aug, string code for the given aug method.
             split (str, optional): train test or validation split. Defaults to 'train'.
-            img_transforms (_type_, optional): transformation to perform on the image before the training step. Defaults to None.
-            lbl_transforms (_type_, optional): same but on labels (usually only type change, no augmentation). Defaults to None.
-
+            is_pseudo (bool, optional): whether to use pseudo labels or not. Defaults to False.
         """
         
         super(CityScapes, self).__init__()
@@ -114,8 +114,10 @@ class CityScapes(VisionDataset):
         print(f"Found {len(self.image_paths)} images for {self.split}")
 
     def __getitem__(self, idx: int) -> tuple:
-        """Returns the image and label at the given index
-
+        """
+        Returns the image and label at the given index
+        Performs the specified augmentation methods with a given probability
+        
         Args:
             idx (int): The index of the image and label
 
@@ -139,11 +141,7 @@ class CityScapes(VisionDataset):
         return img, lbl
 
     def __len__(self) -> int:
-        """returns the length of the dataset
 
-        Returns:
-            int: 
-        """
         return len(self.image_paths)
     
     

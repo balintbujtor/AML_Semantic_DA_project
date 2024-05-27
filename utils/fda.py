@@ -8,8 +8,14 @@ from PIL import Image
 from model.model_stages import BiSeNet
 from utils.utils import *
 
-## FDA
-# we are using the np version because they are working without major modifications to the original code
+
+"""
+Functions related to the FDA method.
+Functions are taken from the following repository:
+    https://github.com/YanchaoYang/FDA
+
+We use the np versions because they work without major modifications to the original code
+"""
 
 def low_freq_mutate_np( amp_src, amp_trg, L=0.1 ):
     a_src = np.fft.fftshift( amp_src, axes=(-2, -1) )
@@ -58,50 +64,65 @@ def FDA_source_to_target_np( src_img, trg_img, L=0.1 ):
 
     return src_in_trg
 
-## Loss function FDA
-## Weighting function for entropy minimization
+
 class EntropyLoss(nn.Module):
-	def __init__(self):
-		super(EntropyLoss, self).__init__()
+    """
+    Loss function FDA
+    Weighting function for entropy minimization
+
+    """
+    
+    def __init__(self):
+        super(EntropyLoss, self).__init__()
 	
-	def forward(self, x, ita):
-		P = F.softmax(x, dim=1)        # [B, 19, H, W]
-		logP = F.log_softmax(x, dim=1) # [B, 19, H, W]
-		PlogP = P * logP               # [B, 19, H, W]
-		ent = -1.0 * PlogP.sum(dim=1)  # [B, 1, H, W]
-		ent = ent / 2.9444 # chanage when classes is not 19
-		# compute robust entropy
-		ent = ent ** 2.0 + 1e-8
-		ent = ent ** ita
-		ent_loss_value = ent.mean()
-  
-		return ent_loss_value
+    def forward(self, x, ita):
+        P = F.softmax(x, dim=1)        # [B, 19, H, W]
+        logP = F.log_softmax(x, dim=1) # [B, 19, H, W]
+        PlogP = P * logP               # [B, 19, H, W]
+        ent = -1.0 * PlogP.sum(dim=1)  # [B, 1, H, W]
+        ent = ent / 2.9444 # chanage when classes is not 19
+        # compute robust entropy
+        ent = ent ** 2.0 + 1e-8
+        ent = ent ** ita
+        ent_loss_value = ent.mean()
+        
+        return ent_loss_value
 
 
-def test_multi_band_transfer(args, 
-                             dataloader_target_val,
-                             checkpoint1_path, 
-                             checkpoint2_path, 
-                             checkpoint3_path,
-                             device):
+def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_path, model3_path, device):
+    """
+    Test the performance of 3 different models on the validation dataset.
+    The predicted output is the average output of the 3 models.
 
+    Args:
+        args (_type_): Arguments that are specified in the command line when launching the main script.
+        dataloader_target_val (_type_): The dataloader for the validation dataset.
+        model1_path (_type_): path for the first model
+        model2_path (_type_): path for the second model
+        model3_path (_type_): path for the third model
+        device (_type_): The device to train on, either cuda or cpu
+
+    Returns:
+        the precision and mIoU of the 3 models for the validation dataset.
+    """
+    
     hist = np.zeros((args.num_classes, args.num_classes))
     precision_record = []
     
-    backbone = args.backbone
-    
+    # load the models and set them to evaluation mode
+    backbone='CatmodelSmall'
     model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model1.load_state_dict(torch.load(checkpoint1_path))
+    model1.load_state_dict(torch.load(model1_path))
     model1.eval()
     model1.to(device)
 
     model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model2.load_state_dict(torch.load(checkpoint2_path))
+    model2.load_state_dict(torch.load(model2_path))
     model2.eval()
     model2.to(device)
     
     model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model3.load_state_dict(torch.load(checkpoint3_path))
+    model3.load_state_dict(torch.load(model3_path))
     model3.eval()
     model3.to(device)
 
@@ -111,6 +132,7 @@ def test_multi_band_transfer(args,
             data = data.to(device)
             label = label.long.to(device)
             
+            # take the predictions of the 3 models and average them
             pred_1, _, _ = model1(data)
             pred_2, _, _ = model2(data)
             pred_3, _, _ = model3(data)
@@ -146,35 +168,47 @@ def test_multi_band_transfer(args,
 
 def pseudo_label_gen(args, 
                      dataloader_target_val,
-                     checkpoint1_path, 
-                     checkpoint2_path, 
-                     checkpoint3_path,
+                     model1_path, 
+                     model2_path, 
+                     model3_path,
                      device,
                      save_path: str = 'Cityscapes/Cityspaces/pseudo_labels',
                      ):
-    ## We need the weights from training FDA on different Betas
-    ## let's say we're usind 3 betas as the repo
+    """_summary_
+
+    Args:
+        args (_type_): Arguments that are specified in the command line when launching the main script.
+        dataloader_target_val (_type_): The dataloader for the validation dataset.
+        model1_path (_type_): path for the first model
+        model2_path (_type_): path for the second model
+        model3_path (_type_): path for the third model
+        device (_type_): The device to train on, either cuda or cpu
+        save_path (str, optional): The paths where to save the generated pseudo labels. 
+                                   Defaults to 'Cityscapes/Cityspaces/pseudo_labels'.
+    """
 
     # 'train' or 'val'
     split = dataloader_target_val.dataset.split
     
+    # create the folder if it does not exist
     save_path_w_mode = os.path.join(save_path, split)
     if not os.path.exists(save_path_w_mode):
         os.makedirs(save_path_w_mode)
-        
-    backbone = args.backbone
+    
+    # load the models and set them to evaluation mode
+    backbone='CatmodelSmall'
     model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model1.load_state_dict(torch.load(checkpoint1_path))
+    model1.load_state_dict(torch.load(model1_path))
     model1.eval()
     model1.to(device)
 
     model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model2.load_state_dict(torch.load(checkpoint2_path))
+    model2.load_state_dict(torch.load(model2_path))
     model2.eval()
     model2.to(device)
     
     model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
-    model3.load_state_dict(torch.load(checkpoint3_path))
+    model3.load_state_dict(torch.load(model3_path))
     model3.eval()
     model3.to(device)
 
@@ -188,6 +222,7 @@ def pseudo_label_gen(args,
             data = data.to(device)
             label = label.long.to(device)
             
+            # generate the predictions and average them to get the pseudo label
             pred_1, _, _ = model1(data)
             pred_2, _, _ = model2(data)
             pred_3, _, _ = model3(data)
@@ -199,12 +234,12 @@ def pseudo_label_gen(args,
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
             
+            # go through the images in the batch to save the image names
             for j in range(data.size(0)):
                 
-                image_path = dataloader_target_val.dataset.image_paths[i*args.batch_size + j]
-                
                 # TODO: check if it is correct
-                
+                image_path = dataloader_target_val.dataset.image_paths[i*args.batch_size + j]
+                                
                 # the first split keeps only the name of the image, the second split removes the extension
                 image_name = image_path.split('/')[-1].split('.')[0]
                 
@@ -216,10 +251,10 @@ def pseudo_label_gen(args,
                 image_names.append(image_name)
                 
 
-  # Each class has a threshold depending on the frequency of it 
-  # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
-  # Otherwise each pixel will be given the label with highest proba even when the probe is really small -> accuracy drops
-  
+    # Each class has a threshold depending on the frequency of it 
+    # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
+    # Otherwise each pixel will be given the label with highest proba even when the probe is really small -> accuracy drops
+
     thres = []
     for i in range(19):
         x = predicted_prob[predicted_label==i]
@@ -233,15 +268,19 @@ def pseudo_label_gen(args,
     thres[thres>0.9]=0.9
     print( thres )
     
+    # go through the dataloader and save the pseudo labels
     for index in range(len(dataloader_target_val)):
         name = image_names[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
+        
+        # set the label to 255 if the probability is less than the threshold
         for i in range(19):
             label[   (prob<thres[i]) * (label==i)   ] = 255  
         output = np.asarray(label, dtype=np.uint8)
         output = Image.fromarray(output)
         
+        # get the city name --> for the folder
         city = name.split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
