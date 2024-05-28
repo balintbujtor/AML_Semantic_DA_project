@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import trainings.train_simple as train_simple
 import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
-import trainings.val as val
+from trainings.val import val
 from utils.utils import *
 from utils.fda import test_multi_band_transfer, pseudo_label_gen
 from model.model_stages import BiSeNet
@@ -99,7 +99,7 @@ def main():
     if 'gta5' in (train_dataset,target_dataset,val_dataset):
         
         # TODO: move this to the GTA5 class
-        directory = "GTA5"
+        directory = "GTA5/images"
         dataset_size = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
         indices = list(range(dataset_size))
         validation_split = 0.2
