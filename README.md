@@ -1,19 +1,139 @@
+# Real-time Domain Adaptation in Semantic Segmentation
+
 ## About
 This project tackles Domain Adaptation applied to the Real-time Semantic Segmentation
 networks, featuring an Adversarial Domain Adaptation algorithm.
 
-## TODO
-- [x] Matching label categories of GTA5 with Cityscapes
-- [ ] Training NN on Cityscapes and filling out table1
+### Authors 
+ - Bálint Bujtor
+ - Boyan Cieutat
+ - Inaam Elhelwe
+
+## Project structure
+  - `datasets/`: contains the classes that handle the datasets
+    - [Cityscapes](datasets/cityscapes.py)
+    - [GTA5](datasets/gta5.py)
+  - `model/`: contains the implementation of the models and their components that are used in the project
+    - [STDC backbone](model/stdcnet.py) - the backbone of the model
+    - [BiSeNet](model/model_stages.py)
+    - [Discriminator](model/discriminator.py) - discriminator used in the adversarial domain adaptation
+  - `trainings/`: contains the training scripts
+    - [Simple training](trainings/train_simple.py) - trains the model on the given dataset and tests it on another or on the same dataset
+    - [Adversarial Domain Adaptation](trainings/train_ADA.py) - trains the model on GTA5 and tests Cityscapes using Adversarial Domain Adaptation
+    - [Fourier Domain Adaptation](trainings/train_FDA.py) - trains the model on GTA5 and tests Cityscapes using Fourier Domain Adaptation
+    - [Semi-supervised Fourier Domain Adaptation](trainings/train_SSL_FDA.py.py) - trains the model on GTA5 and tests Cityscapes using Semi-supervised Fourier Domain Adaptation
+    - [Validation](trainings/val.py) - validates the model on the given dataset
+  - `utils/`: contains utility functions
+    - [General utilities](utils/utils.py) - contains utility functions
+    - [FDA related utilities](utils/fda.py) - contains utility functions for Fourier Domain Adaptation
+    - [Image transformations](utils/transforms.py) - contains image transformations
+  - main.py: main script that runs the training and validation
+
+
+## Information
+  - the two datasets are not included in the repository
 
 ## Useful links
 -  [Colabs env](https://colab.research.google.com/drive/1TDjhWjOQwZ8ToXjDGRF43G7Qk590C7jP)
 - [Docs](https://drive.google.com/drive/folders/1_a1j7FWd2zgzU6ZLaQybO9f02mJM_Uyo)
 
+
+
+## Steps and Results
+1. **TESTING REAL-TIME SEMANTIC SEGMENTATION**
+  1.A - Define the upper bound for the domain adaptation phase.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |----------------|------------|-----------------------------|
+
+
+  1.B - Train on the synthetic dataset.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |----------------|------------|-----------------------------|
+
+
+  1.C - Evaluate the domain shift.
+
+      Test the model trained at step B on the cityscapes val set.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ |
+      |----------------|------------|
+
+  1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
+
+      ```bash
+
+      ```
+
+      | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |---------------------|----------------|------------|-----------------------------|
+
+2. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
+
+    ```bash
+
+    ```
+
+    | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+    |---------------------|----------------|------------|-----------------------------|
+
+
+
+3. **IMPROVEMENTS - Image-to-image translation to improve domain adaptation**
+    You can implement a fast image-to-image translation algorithm like FDA to improve the overall domain adaptation performances. Test it and compare to step 3 results.
+
+      ```bash
+
+      ```
+
+      | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |------|----------------|------------|-----------------------------|
+
+  3.B - Evaluate the performance of the Segmentation Network adapted with MBT.
+      
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ |
+      |----------------|------------|
+
+
+  3.C - Self-learning with pseudo-labels.
+
+
+      Pseudo label generation
+      ```bash
+
+      ```
+
+      Training
+      
+      ```bash
+
+      ```
+      | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |------|----------------|------------|-----------------------------|
+
+
 ## Results
 
 Common parameters:
-- Base model: STCD
+- Base model: STDC
 - Epochs: 50
 - Discriminator: Adam
 
@@ -85,6 +205,3 @@ mIoU per class: [8.55649679e-01 8.32756948e-02 6.50656282e-01 7.27817810e-02
  6.60987629e-01 1.58780603e-01 6.76856284e-01 1.07935027e-02
  0.00000000e+00 5.04739004e-01 3.91791383e-02 2.96842603e-04
  1.00073053e-05 1.37119106e-03 0.00000000e+00]
-  
-  
-  
