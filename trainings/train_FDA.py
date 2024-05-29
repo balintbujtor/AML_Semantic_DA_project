@@ -119,7 +119,7 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
                 import os,datetime
                 os.makedirs(args.save_model_path, exist_ok=True)
                 timestamp = datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best'+timestamp+'.pth'))
+                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best.pth'))
 
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
