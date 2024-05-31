@@ -40,7 +40,8 @@ def main():
     val_dataset = None
     
     num_classes = 19
-
+    is_pseudo = False
+    
     # selecting the datasets based on the action
     match action:
         
@@ -75,6 +76,7 @@ def main():
             train_dataset = 'gta5'
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
+            is_pseudo = True
 
         case _:
             print('Training method not supported \n')
@@ -82,23 +84,24 @@ def main():
 
     if train_dataset == 'cityscapes':
         print("dataloader_train is on cityscapes")
-        train_dataset = CityScapes(aug_method=aug_method, split='train')
+        train_dataset = CityScapes(aug_method=aug_method, split='train', is_pseudo=False)
         dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
         
     if target_dataset == 'cityscapes':
         print("dataloader_target is on cityscapes")
-        target_dataset = CityScapes(aug_method='', split='train')
+        # TODO: check if the is_pseudo argument is correctly set here for SSL FDA
+        target_dataset = CityScapes(aug_method='', split='train', is_pseudo=is_pseudo)
         dataloader_target = DataLoader(target_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
 
     if val_dataset == 'cityscapes':
         print("dataloader_val is on cityscapes")
-        val_dataset = CityScapes(aug_method='', split='val')
+        val_dataset = CityScapes(aug_method='', split='val', is_pseudo=False)
         dataloader_val = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=args.num_workers, drop_last=False)
         
 
     if 'gta5' in (train_dataset,target_dataset,val_dataset):
         
-        # TODO: move this to the GTA5 class
+        # TODO: (low prio) move this to the GTA5 class
         directory = "GTA5/images"
         dataset_size = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
         indices = list(range(dataset_size))
