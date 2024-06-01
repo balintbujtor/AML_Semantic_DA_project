@@ -196,8 +196,11 @@ def main():
         print(f"Precision: {precision}, mIoU: {miou}")
 
     elif action == 'generate_pseudo_labels':
-        # TODO
-        print('you forgot to do me')
+        cp_model1 = 'checkpoints/fda_beta05/best.pth' 
+        cp_model2 = 'checkpoints/fda_beta05/best.pth' 
+        cp_model3 = 'checkpoints/fda_beta05/best.pth' 
+        precision, miou = pseudo_label_gen(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
+        print(f"Precision: {precision}, mIoU: {miou}")
         
     elif action == 'train_ssl_fda':
         # TODO

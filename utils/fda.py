@@ -189,6 +189,10 @@ def pseudo_label_gen(args,
 
     # 'train' or 'val'
     split = dataloader_target_val.dataset.split
+
+    # Computation of Precision
+    hist = np.zeros((args.num_classes, args.num_classes))
+    precision_record = []
     
     # create the folder if it does not exist
     save_path_w_mode = os.path.join(save_path, split)
@@ -233,6 +237,12 @@ def pseudo_label_gen(args,
             label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
+
+            # compute per pixel accuracy
+            precision = compute_global_accuracy(pred, label)
+            hist += fast_hist(label.flatten(), pred.flatten(), args.num_classes)
+
+            precision_record.append(precision)
             
             # go through the images in the batch to save the image names
             for j in range(data.size(0)):
@@ -249,7 +259,14 @@ def pseudo_label_gen(args,
                 # e.g. 'hanover_000000_000019_psedudo_labelTrainIds.png'
                 image_name = image_name + '_pseudo_labelTrainIds.png'
                 image_names.append(image_name)
-                
+
+        # precision
+        precision = np.mean(precision_record)
+        miou_list = per_class_iu(hist)
+        miou = np.mean(miou_list)
+        print('precision per pixel for test: %.3f' % precision)
+        print('mIoU for validation: %.3f' % miou)
+        print(f'mIoU per class: {miou_list}')        
 
     # Each class has a threshold depending on the frequency of it 
     # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
@@ -290,4 +307,4 @@ def pseudo_label_gen(args,
         
         output.save('%s/%s' % (save_path, name)) 
 
-    return
+    return precision, miou
