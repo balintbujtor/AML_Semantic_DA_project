@@ -253,7 +253,7 @@ def pseudo_label_gen(args,
                 
             pred_label, prob = torch.argmax(pred,axis=2), torch.max(pred,axis=2)
         #    predicted_label[i] = torch.Tensor.copy_(pred_label, True)
-            predicted_prob[i] = torch.Tensor.copy_(prob, True)
+            predicted_prob[i] = prob.copy_(True)
 
             # compute per pixel accuracy
             precision = ut.compute_global_accuracy(pred, label)
