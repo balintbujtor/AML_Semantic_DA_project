@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 from model.model_stages import BiSeNet
-from utils.utils import *
+import utils.utils as ut
 
 
 """
@@ -89,7 +89,14 @@ class EntropyLoss(nn.Module):
         return ent_loss_value
 
 
-def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_path, model3_path, device):
+def test_multi_band_transfer(args, 
+                            dataloader_target_val, 
+                            model1_path, 
+                            model2_path, 
+                            model3_path, 
+                            device,
+                            num_classes: int = 19
+                            ):
     """
     Test the performance of 3 different models on the validation dataset.
     The predicted output is the average output of the 3 models.
@@ -106,22 +113,22 @@ def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_pa
         the precision and mIoU of the 3 models for the validation dataset.
     """
     
-    hist = np.zeros((args.num_classes, args.num_classes))
+    hist = np.zeros((num_classes, num_classes))
     precision_record = []
     
     # load the models and set them to evaluation mode
     backbone='CatmodelSmall'
-    model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model1.load_state_dict(torch.load(model1_path))
     model1.eval()
     model1.to(device)
 
-    model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model2.load_state_dict(torch.load(model2_path))
     model2.eval()
     model2.to(device)
     
-    model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model3.load_state_dict(torch.load(model3_path))
     model3.eval()
     model3.to(device)
@@ -140,7 +147,7 @@ def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_pa
             pred = (pred_1 + pred_2 + pred_3) / 3
 
             pred = pred.squeeze(0)
-            pred = reverse_one_hot(pred)
+            pred = ut.reverse_one_hot(pred)
             pred = np.array(pred.cpu())
 
             # get RGB label image
@@ -148,8 +155,8 @@ def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_pa
             label = np.array(label.cpu())
 
             # compute per pixel accuracy
-            precision = compute_global_accuracy(pred, label)
-            hist += fast_hist(label.flatten(), pred.flatten(), args.num_classes)
+            precision = ut.compute_global_accuracy(pred, label)
+            hist += ut.fast_hist(label.flatten(), pred.flatten(), num_classes)
 
             # there is no need to transform the one-hot array to visual RGB array
             # pred = colour_code_segmentation(np.array(pred), label_info)
@@ -158,7 +165,7 @@ def test_multi_band_transfer(args, dataloader_target_val, model1_path, model2_pa
             precision_record.append(precision)
 
         precision = np.mean(precision_record)
-        miou_list = per_class_iu(hist)
+        miou_list = ut.per_class_iu(hist)
         miou = np.mean(miou_list)
         print('precision per pixel for test: %.3f' % precision)
         print('mIoU for validation: %.3f' % miou)
@@ -173,6 +180,7 @@ def pseudo_label_gen(args,
                      model3_path,
                      device,
                      save_path: str = 'Cityscapes/Cityspaces/pseudo_labels',
+                     num_classes: int = 19
                      ):
     """_summary_
 
@@ -191,7 +199,7 @@ def pseudo_label_gen(args,
     split = dataloader_target_val.dataset.split
 
     # Computation of Precision
-    hist = np.zeros((args.num_classes, args.num_classes))
+    hist = np.zeros((num_classes,num_classes))
     precision_record = []
     
     # create the folder if it does not exist
@@ -201,17 +209,17 @@ def pseudo_label_gen(args,
     
     # load the models and set them to evaluation mode
     backbone='CatmodelSmall'
-    model1 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model1.load_state_dict(torch.load(model1_path))
     model1.eval()
     model1.to(device)
 
-    model2 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model2.load_state_dict(torch.load(model2_path))
     model2.eval()
     model2.to(device)
     
-    model3 = BiSeNet(backbone, n_classes = args.num_classes,use_conv_last=args.use_conv_last )
+    model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
     model3.load_state_dict(torch.load(model3_path))
     model3.eval()
     model3.to(device)
@@ -239,8 +247,8 @@ def pseudo_label_gen(args,
             predicted_prob[i] = prob.copy()
 
             # compute per pixel accuracy
-            precision = compute_global_accuracy(pred, label)
-            hist += fast_hist(label.flatten(), pred.flatten(), args.num_classes)
+            precision = ut.compute_global_accuracy(pred, label)
+            hist += ut.fast_hist(label.flatten(), pred.flatten(), num_classes)
 
             precision_record.append(precision)
             
@@ -262,7 +270,7 @@ def pseudo_label_gen(args,
 
         # precision
         precision = np.mean(precision_record)
-        miou_list = per_class_iu(hist)
+        miou_list = ut.per_class_iu(hist)
         miou = np.mean(miou_list)
         print('precision per pixel for test: %.3f' % precision)
         print('mIoU for validation: %.3f' % miou)

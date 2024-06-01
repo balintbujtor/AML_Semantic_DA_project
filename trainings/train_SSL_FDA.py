@@ -6,6 +6,8 @@ import numpy as np
 import torch.cuda.amp as amp
 from tensorboardX import SummaryWriter
 from utils.utils import *
+import utils.utils as ut
+import utils.fda as fda
 from utils.fda import *
 from tqdm import tqdm
 from trainings.val import val
@@ -14,7 +16,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, num_classes, device, beta=0.09, ita=2, entW=0.005):
+def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, device, num_classes = 19, beta=0.09, ita=2, entW=0.005):
     """Training function for self-supervised learning with Fourier Domain Adaptation (SSL-FDA).
 
     Args:
@@ -43,13 +45,13 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
    
     # - Loss functions -
     loss_func = torch.nn.CrossEntropyLoss(ignore_index=255)
-    loss_entr = EntropyLoss()
+    loss_entr = fda.EntropyLoss()
     
     for epoch in range(args.num_epochs):
 
         loss_record = []
         
-        lr = poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
+        lr = ut.poly_lr_scheduler(optimizer, learning_rate, iter=epoch, max_iter=args.num_epochs)
         model.train()
 
         tq = tqdm(total=min(len(dataloader_train_source),len(dataloader_train_target_SSL)) * args.batch_size)
@@ -59,7 +61,7 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
 
 
             # 1. Source to Target, Target to Target : Adapt source image to target image
-            source_in_target = FDA_source_to_target_np(data_source, data_target, L=beta)
+            source_in_target = fda.FDA_source_to_target_np(data_source, data_target, L=beta)
             source_in_target = torch.from_numpy(source_in_target).float()
             target_in_target = data_target
 
