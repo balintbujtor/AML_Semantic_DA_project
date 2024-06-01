@@ -245,13 +245,13 @@ def pseudo_label_gen(args,
             if pred.is_cuda:
                 pred = pred.cpu()
 
-            pred_label, prob = np.argmax(pred,axis=2), np.max(pred,axis=2)
-            predicted_label[i] = pred_label.copy_(False)
-            predicted_prob[i] = pred.copy_(False)
+            # pred_label, prob = np.argmax(pred,axis=2), np.max(pred,axis=2)
+            # predicted_label[i] = pred_label.copy_(False)
+            # predicted_prob[i] = pred.copy_(False)
 
-            # pred_label, prob = torch.argmax(pred,axis=2), torch.max(pred,axis=2)
-            # predicted_label[i] = torch.Tensorcopy_(pred_label, False)
-            # predicted_prob[i] = torch.Tensor.copy_(pred, False)
+            pred_label, prob = torch.argmax(pred,axis=2), torch.max(pred,axis=2)
+            predicted_label[i] = torch.Tensor.copy_(pred_label, False)
+            predicted_prob[i] = torch.Tensor.copy_(pred, False)
 
             # compute per pixel accuracy
             precision = ut.compute_global_accuracy(pred, label)
