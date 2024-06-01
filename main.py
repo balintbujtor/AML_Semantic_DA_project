@@ -70,7 +70,10 @@ def main():
             val_dataset = 'cityscapes' 
         
         case 'generate_pseudo_labels':
-            print('you forgot to do me') # TODO
+            train_dataset = 'gta5'
+            target_dataset = 'cityscapes'
+            val_dataset = 'cityscapes'
+            is_pseudo = False
             
         case 'train_ssl_fda':
             train_dataset = 'gta5'
