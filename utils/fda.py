@@ -232,7 +232,7 @@ def pseudo_label_gen(args,
         for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
-            label = label.long.to(device)
+            label = label.long().to(device)
             
             # generate the predictions and average them to get the pseudo label
             pred_1, _, _ = model1(data)
