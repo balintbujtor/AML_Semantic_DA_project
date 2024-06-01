@@ -251,7 +251,7 @@ def pseudo_label_gen(args,
             if pred.is_cuda:
                 pred = pred.cpu()
                 
-            pred_label, prob = np.argmax(pred,axis=2), np.max(pred,axis=2)
+            pred_label, prob = np.argmax(pred), np.max(pred)
             predicted_label[i] = np.copy(pred_label)
             predicted_prob[i] = np.copy(prob)
 
