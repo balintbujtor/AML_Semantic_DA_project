@@ -242,7 +242,7 @@ def pseudo_label_gen(args,
             pred = (pred_1 + pred_2 + pred_3) / 3
             pred = torch.nn.functional.softmax(pred, dim=1)
             
-            label, prob = np.argmax(pred, axis=1), np.max(pred, axis=1)
+            label, prob = np.argmax(pred, axis=0), np.max(pred, axis=0)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
 
