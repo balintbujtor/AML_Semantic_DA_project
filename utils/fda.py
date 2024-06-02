@@ -261,7 +261,7 @@ def pseudo_label_gen(args,
             pred = pred.transpose(1,2,0)
             
             
-            label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
+            label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
             image_name.append(name[0])
