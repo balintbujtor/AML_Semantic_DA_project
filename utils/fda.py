@@ -262,16 +262,16 @@ def pseudo_label_gen(args,
            
             
             # go through the images in the batch to save the image names
-            for j in range(data.size(0)):
+            for j in range(pred.size(0)):
 
                 pred = pred[i].cpu().numpy()
                 pred = pred.transpose(1,2,0)
             
             
                 label = np.argmax(pred, axis=2)
-                prob = np.max(pred)
+                prob = np.max(pred, axis=2)
 
-
+                
                 predicted_label[i] = label.copy()
                 predicted_prob[i] = prob.copy()
             
