@@ -224,15 +224,15 @@ def pseudo_label_gen(args,
     model3.eval()
     model3.to(device)
 
-    predicted_label = np.zeros((len(dataloader_target_val), 512,1024), dtype=np.uint8)
-    predicted_prob = np.zeros((len(dataloader_target_val), 512,1024), dtype=np.float32)    
+    predicted_label = np.zeros((len(dataloader_target_val), 512,1024))
+    predicted_prob = np.zeros((len(dataloader_target_val), 512,1024))    
     image_names = []
     
     with torch.no_grad():
         for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
-            label = label.long().to(device)
+            #label = label.long().to(device)
             
             # generate the predictions and average them to get the pseudo label
             pred_1, _, _ = model1(data)
@@ -248,12 +248,20 @@ def pseudo_label_gen(args,
             # predicted_prob[i] = pred.copy(False)
 
             ## Edited
-            if pred.is_cuda:
-                pred = pred.cpu()
+            # if pred.is_cuda:
+            #     pred = pred.cpu()
                 
-            pred_label, prob = np.argmax(pred), np.max(pred)
-            predicted_label[i] = np.copy(pred_label)
-            predicted_prob[i] = np.copy(prob)
+            # pred_label, prob = np.argmax(pred), np.max(pred)
+            # predicted_label[i] = np.copy(pred_label)
+            # predicted_prob[i] = np.copy(prob)
+            
+            
+            ## Alteration 02/06
+            label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
+            predicted_label[index] = label.copy()
+            predicted_prob[index] = prob.copy()
+            image_name.append(name[0])
+            
 
             # compute per pixel accuracy 
             precision = ut.compute_global_accuracy(pred, label)
