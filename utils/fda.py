@@ -259,23 +259,25 @@ def pseudo_label_gen(args,
             
             ## Alteration 02/06
             
-            pred = pred[i].cpu().numpy()
-            pred = pred.transpose(1,2,0)
-            
-            
-            label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
-            predicted_label[i] = label.copy()
-            predicted_prob[i] = prob.copy()
-            
-
-            # compute per pixel accuracy 
-            precision = ut.compute_global_accuracy(pred, label)
-            hist += ut.fast_hist(label.flatten(), prob.flatten(), num_classes)
-
-            precision_record.append(precision)
+           
             
             # go through the images in the batch to save the image names
             for j in range(data.size(0)):
+
+                pred = pred[i].cpu().numpy()
+                pred = pred.transpose(1,2,0)
+            
+            
+                label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
+                predicted_label[i] = label.copy()
+                predicted_prob[i] = prob.copy()
+            
+
+            # compute per pixel accuracy 
+                precision = ut.compute_global_accuracy(pred, label)
+                hist += ut.fast_hist(label.flatten(), prob.flatten(), num_classes)
+
+                precision_record.append(precision)
                 
                 # TODO: check if it is correct
                 image_path = dataloader_target_val.dataset.image_paths[i*args.batch_size + j]
