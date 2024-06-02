@@ -232,7 +232,6 @@ def pseudo_label_gen(args,
         for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
-            #label = label.long().to(device)
             
             # generate the predictions and average them to get the pseudo label
             pred_1, _, _ = model1(data)
@@ -257,6 +256,11 @@ def pseudo_label_gen(args,
             
             
             ## Alteration 02/06
+            
+            pred = F.interpolate(pred, (512, 1024), mode='bilinear', align_corners=True).cpu().data[0].numpy()
+            pred = pred.transpose(1,2,0)
+            
+            
             label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
