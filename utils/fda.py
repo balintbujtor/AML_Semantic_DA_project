@@ -264,7 +264,7 @@ def pseudo_label_gen(args,
             label, prob = np.argmax(pred, axis=2), np.max(pred, axis=2)
             predicted_label[i] = label.copy()
             predicted_prob[i] = prob.copy()
-            image_name.append(name[0])
+            image_names.append(name[0])
             
 
             # compute per pixel accuracy 
