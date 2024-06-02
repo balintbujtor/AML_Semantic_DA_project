@@ -206,29 +206,29 @@ def pseudo_label_gen(args,
     save_path_w_mode = os.path.join(save_path, split)
     if not os.path.exists(save_path_w_mode):
         os.makedirs(save_path_w_mode)
-    
-    # load the models and set them to evaluation mode
-    backbone='CatmodelSmall'
-    model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-    model1.load_state_dict(torch.load(model1_path))
-    model1.eval()
-    model1.to(device)
-
-    model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-    model2.load_state_dict(torch.load(model2_path))
-    model2.eval()
-    model2.to(device)
-    
-    model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-    model3.load_state_dict(torch.load(model3_path))
-    model3.eval()
-    model3.to(device)
-
-    predicted_label = np.zeros((len(dataloader_target_val), 512,1024))
-    predicted_prob = np.zeros((len(dataloader_target_val), 512,1024))    
-    image_names = []
-    
+        
     with torch.no_grad():
+        # load the models and set them to evaluation mode
+        backbone='CatmodelSmall'
+        model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+        model1.load_state_dict(torch.load(model1_path))
+        model1.eval()
+        model1.to(device)
+
+        model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+        model2.load_state_dict(torch.load(model2_path))
+        model2.eval()
+        model2.to(device)
+        
+        model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+        model3.load_state_dict(torch.load(model3_path))
+        model3.eval()
+        model3.to(device)
+
+        predicted_label = np.zeros((len(dataloader_target_val), 512,1024))
+        predicted_prob = np.zeros((len(dataloader_target_val), 512,1024))    
+        image_names = []
+    
         for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
@@ -239,6 +239,8 @@ def pseudo_label_gen(args,
             pred_3, _, _ = model3(data)
 
             pred = (pred_1 + pred_2 + pred_3) / 3
+            
+            # Get the predict
             pred = torch.nn.functional.softmax(pred, dim=1)
 
             ## Original code
@@ -257,7 +259,7 @@ def pseudo_label_gen(args,
             
             ## Alteration 02/06
             
-            pred = F.interpolate(pred, (512, 1024), mode='bilinear', align_corners=True).cpu().data[0].numpy()
+            pred = pred.cpu().data[0].numpy()
             pred = pred.transpose(1,2,0)
             
             
