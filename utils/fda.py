@@ -259,7 +259,7 @@ def pseudo_label_gen(args,
             
             ## Alteration 02/06
             
-            pred = pred.cpu().data[0].numpy()
+            pred = pred[i].cpu().numpy()
             pred = pred.transpose(1,2,0)
             
             
