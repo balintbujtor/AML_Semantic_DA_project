@@ -264,7 +264,7 @@ def pseudo_label_gen(args,
             # go through the images in the batch to save the image names
             for j in range(pred.size(0)):
 
-                pred = pred[i].cpu().numpy()
+                pred = pred[j].cpu().numpy()
                 pred = pred.transpose(1,2,0)
             
             
