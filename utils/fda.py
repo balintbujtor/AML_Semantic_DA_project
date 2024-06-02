@@ -270,7 +270,7 @@ def pseudo_label_gen(args,
 
             # compute per pixel accuracy 
             precision = ut.compute_global_accuracy(pred, label)
-            hist += ut.fast_hist(label.flatten(), pred.flatten(), num_classes)
+            hist += ut.fast_hist(label.flatten(), prob.flatten(), num_classes)
 
             precision_record.append(precision)
             
