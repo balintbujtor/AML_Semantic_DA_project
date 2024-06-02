@@ -258,8 +258,8 @@ def pseudo_label_gen(args,
             
             ## Alteration 02/06
             label, prob = np.argmax(output, axis=2), np.max(output, axis=2)
-            predicted_label[index] = label.copy()
-            predicted_prob[index] = prob.copy()
+            predicted_label[i] = label.copy()
+            predicted_prob[i] = prob.copy()
             image_name.append(name[0])
             
 
