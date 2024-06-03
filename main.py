@@ -192,18 +192,17 @@ def main():
             val(model, dataloader_val, device, num_classes)                                            # final test
     
     elif action == 'val_mbt':
-        cp_model1 = "fill_me" # TODO
-        cp_model2 = "fill_me"
-        cp_model3 = "fill_me"
-        precision, miou = test_multi_band_transfer(args, dataloader_val, num_classes, cp_model1, cp_model2, cp_model3, device)
+        cp_model1 = 'checkpoints/fda_beta05/best.pth'
+        cp_model2 = 'checkpoints/fda_beta05/best.pth'
+        cp_model3 = 'checkpoints/fda_beta05/best.pth'
+        precision, miou = test_multi_band_transfer(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
         print(f"Precision: {precision}, mIoU: {miou}")
 
     elif action == 'generate_pseudo_labels':
         cp_model1 = 'checkpoints/fda_beta05/best.pth' 
         cp_model2 = 'checkpoints/fda_beta05/best.pth' 
         cp_model3 = 'checkpoints/fda_beta05/best.pth' 
-        precision, miou = pseudo_label_gen(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
-        print(f"Precision: {precision}, mIoU: {miou}")
+        pseudo_label_gen(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
         
     elif action == 'train_ssl_fda':
         # TODO
@@ -214,12 +213,7 @@ def main():
         return None
         
 if __name__ == "__main__":
-    
-    # TODO: train FDA 3x with different betas
-    # TODO: upload the trained models
-    
-    # TODO: debug the mbt
-    # TODO: debug pseudo generation
+        
     # TODO: debug the SSL FDA
     
     # TODO: perfrom MBT
