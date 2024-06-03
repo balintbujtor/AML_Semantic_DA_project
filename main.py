@@ -193,16 +193,16 @@ def main():
             val(model, dataloader_val, device, num_classes)                                            # final test
     
     elif action == 'val_mbt':
-        cp_model1 = 'checkpoints/fda_beta05/best.pth'
-        cp_model2 = 'checkpoints/fda_beta05/best.pth'
-        cp_model3 = 'checkpoints/fda_beta05/best.pth'
+        cp_model1 = 'AML_Semantic_DA_project/checkpoints/fda_beta01/best.pth'
+        cp_model2 = 'AML_Semantic_DA_project/checkpoints/fda_beta05/best.pth'
+        cp_model3 = 'AML_Semantic_DA_project/checkpoints/fda_beta09/best.pth'
         precision, miou = test_multi_band_transfer(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
         print(f"Precision: {precision}, mIoU: {miou}")
 
     elif action == 'generate_pseudo_labels':
-        cp_model1 = 'checkpoints/fda_beta05/best.pth' 
-        cp_model2 = 'checkpoints/fda_beta05/best.pth' 
-        cp_model3 = 'checkpoints/fda_beta05/best.pth'
+        cp_model1 = 'AML_Semantic_DA_project/checkpoints/fda_beta01/best.pth'
+        cp_model2 = 'AML_Semantic_DA_project/checkpoints/fda_beta05/best.pth'
+        cp_model3 = 'AML_Semantic_DA_project/checkpoints/fda_beta09/best.pth'
         
         # generate on cityscapes train
         pseudo_label_gen(args, dataloader_target, cp_model1, cp_model2, cp_model3, device)
