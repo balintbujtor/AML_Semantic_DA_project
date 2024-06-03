@@ -95,7 +95,6 @@ def test_multi_band_transfer(args,
                             model2_path, 
                             model3_path, 
                             device,
-                            num_classes: int = 19
                             ):
     """
     Test the performance of 3 different models on the validation dataset.
@@ -112,32 +111,33 @@ def test_multi_band_transfer(args,
     Returns:
         the precision and mIoU of the 3 models for the validation dataset.
     """
-    
+    num_classes = 19
+    backbone='CatmodelSmall'
     hist = np.zeros((num_classes, num_classes))
     precision_record = []
     
     # load the models and set them to evaluation mode
-    backbone='CatmodelSmall'
-    model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+
+    model1 = BiSeNet(backbone, num_classes, args.pretrain_path, use_conv_last=False)
     model1.load_state_dict(torch.load(model1_path))
     model1.eval()
     model1.to(device)
 
-    model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+    model2 = BiSeNet(backbone, num_classes, args.pretrain_path, use_conv_last=False)
     model2.load_state_dict(torch.load(model2_path))
     model2.eval()
     model2.to(device)
     
-    model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
+    model3 = BiSeNet(backbone, num_classes, args.pretrain_path, use_conv_last=False)
     model3.load_state_dict(torch.load(model3_path))
     model3.eval()
     model3.to(device)
 
     with torch.no_grad():
-        for i, (data, label, _) in enumerate(dataloader_target_val):
+        for i, (data, label) in enumerate(dataloader_target_val):
             
             data = data.to(device)
-            label = label.long.to(device)
+            label = label.long().to(device)
             
             # take the predictions of the 3 models and average them
             pred_1, _, _ = model1(data)
@@ -174,19 +174,18 @@ def test_multi_band_transfer(args,
         return precision, miou
 
 def pseudo_label_gen(args, 
-                     dataloader_target_val,
+                     dataloader,
                      model1_path, 
                      model2_path, 
                      model3_path,
                      device,
                      save_path: str = 'Cityscapes/Cityspaces/pseudo_labels',
-                     num_classes: int = 19
                      ):
     """_summary_
 
     Args:
         args (_type_): Arguments that are specified in the command line when launching the main script.
-        dataloader_target_val (_type_): The dataloader for the validation dataset.
+        dataloader (_type_): The dataloader for the validation dataset.
         model1_path (_type_): path for the first model
         model2_path (_type_): path for the second model
         model3_path (_type_): path for the third model
@@ -195,43 +194,46 @@ def pseudo_label_gen(args,
                                    Defaults to 'Cityscapes/Cityspaces/pseudo_labels'.
     """
 
+    num_classes = 19
+    pretrain_path = args.pretrain_path
+    backbone='CatmodelSmall'
+        
+    predicted_label = [] # np.zeros((len(dataloader), 512,1024), dtype=np.uint8)
+    predicted_prob = [] # np.zeros((len(dataloader), 512,1024), dtype=np.float32)    
+    image_names = []
+    
     # 'train' or 'val'
-    split = dataloader_target_val.dataset.split
-
-    # Computation of Precision
-    hist = np.zeros((num_classes,num_classes))
-    precision_record = []
+    split = dataloader.dataset.split
     
     # create the folder if it does not exist
     save_path_w_mode = os.path.join(save_path, split)
     if not os.path.exists(save_path_w_mode):
         os.makedirs(save_path_w_mode)
-        
-    with torch.no_grad():
-        # load the models and set them to evaluation mode
-        backbone='CatmodelSmall'
-        model1 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-        model1.load_state_dict(torch.load(model1_path))
-        model1.eval()
-        model1.to(device)
-
-        model2 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-        model2.load_state_dict(torch.load(model2_path))
-        model2.eval()
-        model2.to(device)
-        
-        model3 = BiSeNet(backbone, n_classes = num_classes,use_conv_last=False)
-        model3.load_state_dict(torch.load(model3_path))
-        model3.eval()
-        model3.to(device)
-
-        predicted_label = np.zeros((len(dataloader_target_val), 512,1024))
-        predicted_prob = np.zeros((len(dataloader_target_val), 512,1024))    
-        image_names = []
     
-        for i, (data, label) in enumerate(dataloader_target_val):
+    # load the models and set them to evaluation mode
+    model1 = BiSeNet(backbone, num_classes, pretrain_path, use_conv_last=False)
+    model1.load_state_dict(torch.load(model1_path))
+    model1.eval()
+    model1.to(device)
+
+    model2 = BiSeNet(backbone, num_classes, pretrain_path, use_conv_last=False)
+    model2.load_state_dict(torch.load(model2_path))
+    model2.eval()
+    model2.to(device)
+    
+    model3 = BiSeNet(backbone, num_classes, pretrain_path, use_conv_last=False)
+    model3.load_state_dict(torch.load(model3_path))
+    model3.eval()
+    model3.to(device)
+
+    with torch.no_grad():
+        for i, (data, label) in enumerate(dataloader):
             
+            batch_size = data.size(0)
             data = data.to(device)
+            
+            # not needed for the pseudo label generation
+            label = label.long().to(device)
             
             # generate the predictions and average them to get the pseudo label
             pred_1, _, _ = model1(data)
@@ -242,51 +244,30 @@ def pseudo_label_gen(args,
             
             # Get the predict
             pred = torch.nn.functional.softmax(pred, dim=1)
-
-            ## Original code
-            # label, prob = np.argmax(pred,axis=2), np.max(pred,axis=2)
-            # predicted_label[i] = label.copy(False)
-            # predicted_prob[i] = pred.copy(False)
-
-            ## Edited
-            # if pred.is_cuda:
-            #     pred = pred.cpu()
-                
-            # pred_label, prob = np.argmax(pred), np.max(pred)
-            # predicted_label[i] = np.copy(pred_label)
-            # predicted_prob[i] = np.copy(prob)
-            
-            
-            ## Alteration 02/06
-            
-           
             
             # go through the images in the batch to save the image names
-            for j in range(pred.size(0)):
-
-                pred = pred[j].cpu().numpy()
-                pred = pred.transpose(1,2,0)
-            
-            
-                label = np.argmax(pred, axis=2)
-                prob = np.max(pred, axis=2)
-
+            for j in range(data.size(0)):
                 
-                predicted_label[i] = label.copy()
-                predicted_prob[i] = prob.copy()
-            
-
-            # compute per pixel accuracy 
-                precision = ut.compute_global_accuracy(pred, label)
-                hist += ut.fast_hist(label.flatten(), prob.flatten(), num_classes)
-
-                precision_record.append(precision)
+                pred_np = pred[j].cpu().numpy()
+                pred_np = pred_np.transpose(1, 2, 0)    # [H, W, C]
                 
-                # TODO: check if it is correct
-                image_path = dataloader_target_val.dataset.image_paths[i*args.batch_size + j]
+                pred_label = np.argmax(pred_np, axis=2)
+                predicted_label.append(pred_label)
+                
+                probs = np.max(pred_np, axis=2)
+                predicted_prob.append(probs)
+                
+                index = i*batch_size + j
+                if index < len(dataloader.dataset.image_paths):
+                    image_path = dataloader.dataset.image_paths[index]
+                else:
+                    print("ERROR: Index out of range")
                                 
                 # the first split keeps only the name of the image, the second split removes the extension
                 image_name = image_path.split('/')[-1].split('.')[0]
+                
+                # for some reason some part of the path is with '\\' and some with '/'
+                image_name = image_path.split('\\')[-1].split('.')[0]
                 
                 # remove the last part of the name, i.e. '_leftImg8bit'
                 image_name = image_name.rsplit('_', 1)[0]
@@ -294,19 +275,14 @@ def pseudo_label_gen(args,
                 # e.g. 'hanover_000000_000019_psedudo_labelTrainIds.png'
                 image_name = image_name + '_pseudo_labelTrainIds.png'
                 image_names.append(image_name)
-
-        # precision
-        precision = np.mean(precision_record)
-        miou_list = ut.per_class_iu(hist)
-        miou = np.mean(miou_list)
-        print('precision per pixel for test: %.3f' % precision)
-        print('mIoU for validation: %.3f' % miou)
-        print(f'mIoU per class: {miou_list}')        
+   
 
     # Each class has a threshold depending on the frequency of it 
     # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
     # Otherwise each pixel will be given the label with highest proba even when the probe is really small -> accuracy drops
 
+    assert len(image_names) == len(dataloader.dataset.image_paths), "Number of saved image names should be equal to the dataloader's length"
+ 
     thres = []
     for i in range(19):
         x = predicted_prob[predicted_label==i]
@@ -314,14 +290,14 @@ def pseudo_label_gen(args,
             thres.append(0)
             continue        
         x = np.sort(x)
-        thres.append(x[np.int(np.round(len(x)*0.66))])
-    print( thres )
+        thres.append(x[int(round(len(x)*0.66))])
+        
     thres = np.array(thres)
     thres[thres>0.9]=0.9
-    print( thres )
+    print( 'Threshold for every class is: ', thres)
     
     # go through the dataloader and save the pseudo labels
-    for index in range(len(dataloader_target_val)):
+    for index in range(len(dataloader)):
         name = image_names[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
@@ -342,4 +318,4 @@ def pseudo_label_gen(args,
         
         output.save('%s/%s' % (save_path, name)) 
 
-    return precision, miou
+    return

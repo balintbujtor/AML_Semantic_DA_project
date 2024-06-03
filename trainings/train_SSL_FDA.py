@@ -16,7 +16,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, device, num_classes = 19, beta=0.09, ita=2, entW=0.005):
+def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_train_target_SSL, dataloader_val, device, beta=0.09, ita=2, entW=0.005):
     """Training function for self-supervised learning with Fourier Domain Adaptation (SSL-FDA).
 
     Args:
@@ -35,6 +35,7 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
     """
     max_miou = 0
     step = 0
+    num_classes = 19
     
     writer = SummaryWriter(comment=''.format(args.optimizer))
     # to handle small gradients and avoid vanishing gradients
@@ -95,15 +96,12 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
                 loss3 = loss_func(trg_out32, label_trg_psu.squeeze(1))
                 loss_seg_pseudo = loss1 + loss2 + loss3            
 
-                # Total loss
-                loss_total = loss_seg_source + loss_seg_pseudo + entW*loss_ent
+            # Total loss
+            loss_total = loss_seg_source + loss_seg_pseudo + entW*loss_ent
 
             scaler.scale(loss_total).backward()
             scaler.step(optimizer)
             scaler.update()
-
-            loss_train += loss_seg_source.detach().cpu().numpy()
-            loss_val += loss_seg_pseudo.detach().cpu().numpy()
             
             tq.update(args.batch_size)
             tq.set_postfix(loss='%.6f' % loss_total)
@@ -112,10 +110,10 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
             loss_record.append(loss_total.item())
             
         tq.close()
-        loss_train_mean = np.mean(loss_record)
+        loss_mean = np.mean(loss_record)
 
-        writer.add_scalar('epoch/loss_epoch_train', float(loss_train_mean), epoch)
-        print('loss for train : %f' % (loss_train_mean))
+        writer.add_scalar('epoch/loss_epoch_train', float(loss_mean), epoch)
+        print('loss for train : %f' % (loss_mean))
         
         # Save the model every checkpoint_step epochs
         if epoch % args.checkpoint_step == 0 and epoch != 0:
