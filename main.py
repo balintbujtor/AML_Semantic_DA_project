@@ -2,6 +2,7 @@ import os
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 
+from trainings.train_SSL_FDA import train_SSL_FDA
 import trainings.train_simple as train_simple
 import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
@@ -34,6 +35,7 @@ def main():
     aug_method = args.aug_method
     
     action = args.action
+    batch_size = args.batch_size
     
     train_dataset = None
     target_dataset = None
@@ -74,6 +76,7 @@ def main():
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
             is_pseudo = False
+            batch_size = 1 # to avoid not generating every image in the dataset
             
         case 'train_ssl_fda':
             train_dataset = 'gta5'
@@ -88,13 +91,13 @@ def main():
     if train_dataset == 'cityscapes':
         print("dataloader_train is on cityscapes")
         train_dataset = CityScapes(aug_method=aug_method, split='train', is_pseudo=False)
-        dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
+        dataloader_train = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
         
     if target_dataset == 'cityscapes':
         print("dataloader_target is on cityscapes")
         # TODO: check if the is_pseudo argument is correctly set here for SSL FDA
         target_dataset = CityScapes(aug_method='', split='train', is_pseudo=is_pseudo)
-        dataloader_target = DataLoader(target_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
+        dataloader_target = DataLoader(target_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
 
     if val_dataset == 'cityscapes':
         print("dataloader_val is on cityscapes")
@@ -104,7 +107,6 @@ def main():
 
     if 'gta5' in (train_dataset,target_dataset,val_dataset):
         
-        # TODO: (low prio) move this to the GTA5 class
         directory = "GTA5/images"
         dataset_size = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
         indices = list(range(dataset_size))
@@ -122,13 +124,13 @@ def main():
         if train_dataset == 'gta5':
             print("dataloader_train is on gta5")
             train_dataset = GTA5(aug_method=aug_method, training_method=action)
-            dataloader_train = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
+            dataloader_train = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
             
         if target_dataset == 'gta5':
             print("dataloader_target is on gta5")
             
             target_dataset = GTA5(aug_method='', training_method=action)
-            dataloader_target = DataLoader(target_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
+            dataloader_target = DataLoader(target_dataset, batch_size=batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False, drop_last=True, sampler=train_sampler)
 
         if val_dataset == 'gta5':
             print("dataloader_val is on gta5")
@@ -201,21 +203,27 @@ def main():
     elif action == 'generate_pseudo_labels':
         cp_model1 = 'checkpoints/fda_beta05/best.pth' 
         cp_model2 = 'checkpoints/fda_beta05/best.pth' 
-        cp_model3 = 'checkpoints/fda_beta05/best.pth' 
+        cp_model3 = 'checkpoints/fda_beta05/best.pth'
+        
+        # generate on cityscapes train
+        pseudo_label_gen(args, dataloader_target, cp_model1, cp_model2, cp_model3, device)
+        
+        # generate on cityscapes val
         pseudo_label_gen(args, dataloader_val, cp_model1, cp_model2, cp_model3, device)
         
     elif action == 'train_ssl_fda':
-        # TODO
-        print('you forgot to do me')
-        
+        if val_only:
+            model.load_state_dict(torch.load(args.load_model_path))
+            val(model, dataloader_val, device, num_classes)
+        else:
+            train_SSL_FDA(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop
+            val(model, dataloader_val, device, num_classes)                                            # final test
     else:
         print('Training method not supported \n')
         return None
         
 if __name__ == "__main__":
         
-    # TODO: debug the SSL FDA
-    
     # TODO: perfrom MBT
     # TODO: generate pseudo labels
     # TODO: train SSL FDA

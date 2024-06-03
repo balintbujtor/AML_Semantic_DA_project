@@ -174,7 +174,7 @@ def test_multi_band_transfer(args,
         return precision, miou
 
 def pseudo_label_gen(args, 
-                     dataloader_target_val,
+                     dataloader,
                      model1_path, 
                      model2_path, 
                      model3_path,
@@ -185,7 +185,7 @@ def pseudo_label_gen(args,
 
     Args:
         args (_type_): Arguments that are specified in the command line when launching the main script.
-        dataloader_target_val (_type_): The dataloader for the validation dataset.
+        dataloader (_type_): The dataloader for the validation dataset.
         model1_path (_type_): path for the first model
         model2_path (_type_): path for the second model
         model3_path (_type_): path for the third model
@@ -198,12 +198,12 @@ def pseudo_label_gen(args,
     pretrain_path = args.pretrain_path
     backbone='CatmodelSmall'
         
-    predicted_label = [] # np.zeros((len(dataloader_target_val), 512,1024), dtype=np.uint8)
-    predicted_prob = [] # np.zeros((len(dataloader_target_val), 512,1024), dtype=np.float32)    
+    predicted_label = [] # np.zeros((len(dataloader), 512,1024), dtype=np.uint8)
+    predicted_prob = [] # np.zeros((len(dataloader), 512,1024), dtype=np.float32)    
     image_names = []
     
     # 'train' or 'val'
-    split = dataloader_target_val.dataset.split
+    split = dataloader.dataset.split
     
     # create the folder if it does not exist
     save_path_w_mode = os.path.join(save_path, split)
@@ -227,7 +227,7 @@ def pseudo_label_gen(args,
     model3.to(device)
 
     with torch.no_grad():
-        for i, (data, label) in enumerate(dataloader_target_val):
+        for i, (data, label) in enumerate(dataloader):
             
             batch_size = data.size(0)
             data = data.to(device)
@@ -254,8 +254,8 @@ def pseudo_label_gen(args,
                 predicted_prob.append(probs)
                 
                 index = i*batch_size + j
-                if index < len(dataloader_target_val.dataset.image_paths):
-                    image_path = dataloader_target_val.dataset.image_paths[index]
+                if index < len(dataloader.dataset.image_paths):
+                    image_path = dataloader.dataset.image_paths[index]
                 else:
                     print("ERROR: Index out of range")
                                 
@@ -277,7 +277,7 @@ def pseudo_label_gen(args,
     # So for each label we check if it's less than the threshold of the corresofing class this label is ignored
     # Otherwise each pixel will be given the label with highest proba even when the probe is really small -> accuracy drops
 
-    assert len(image_names) == len(dataloader_target_val), "Number of saved image names should be equal to the dataloader's length"
+    assert len(image_names) == len(dataloader.dataset.image_paths), "Number of saved image names should be equal to the dataloader's length"
  
     thres = []
     for i in range(19):
@@ -293,7 +293,7 @@ def pseudo_label_gen(args,
     print( 'Threshold for every class is: ', thres)
     
     # go through the dataloader and save the pseudo labels
-    for index in range(len(dataloader_target_val)):
+    for index in range(len(dataloader)):
         name = image_names[index]
         label = predicted_label[index]
         prob = predicted_prob[index]
