@@ -95,7 +95,6 @@ def main():
         
     if target_dataset == 'cityscapes':
         print("dataloader_target is on cityscapes")
-        # TODO: check if the is_pseudo argument is correctly set here for SSL FDA
         target_dataset = CityScapes(aug_method='', split='train', is_pseudo=is_pseudo)
         dataloader_target = DataLoader(target_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
 
