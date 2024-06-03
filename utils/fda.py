@@ -316,6 +316,6 @@ def pseudo_label_gen(args,
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         
-        output.save('%s/%s' % (save_path, name)) 
+        output.save('%s/%s' % (save_path, os.path.basename(name))) 
 
     return
