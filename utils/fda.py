@@ -298,7 +298,7 @@ def pseudo_label_gen(args,
     
     # go through the dataloader and save the pseudo labels
     for index in range(len(dataloader)):
-        name = image_names[index]
+        name = os.path.basename(image_names[index])
         label = predicted_label[index]
         prob = predicted_prob[index]
         
@@ -309,13 +309,13 @@ def pseudo_label_gen(args,
         output = Image.fromarray(output)
         
         # get the city name --> for the folder
-        city = os.path.basename(name).split('_')[0]
+        city = name.split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
         save_path = os.path.join(save_path_w_mode, city)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         
-        output.save(save_path) 
+        output.save('%s/%s' % (save_path, name)) 
 
     return
