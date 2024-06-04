@@ -109,9 +109,6 @@ class CityScapes(VisionDataset):
             self.label_paths.extend([os.path.join(city_label_dir, file) for file in city_label_files if 'labelTrainIds' in file])
             self.colour_map_path.extend([os.path.join(city_label_dir, file) for file in city_label_files if 'color' in file])
 
-        
-        print(self.image_paths)
-        print(self.label_paths)
         assert len(self.image_paths) == len(self.label_paths), "Number of images and labels should be the same"
         print(f"Found {len(self.image_paths)} images for {self.split}")
 

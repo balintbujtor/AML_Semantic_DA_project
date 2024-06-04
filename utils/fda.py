@@ -309,7 +309,7 @@ def pseudo_label_gen(args,
         output = Image.fromarray(output)
         
         # get the city name --> for the folder
-        city = name.split('_')[0]
+        city = os.path.basename(name).split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
         save_path = os.path.join(save_path_w_mode, city)
