@@ -1,8 +1,11 @@
+from calendar import c
+from email.mime import image
 import torch
+from datasets.cityscapes import CityScapes
 from utils.utils import *
 
 
-def val(model, dataloader, device, num_classes):
+def visualize(model, dataset, dataloader, device, num_classes, savepath):
     """
     Validation function for the models across all training scripts.
 
@@ -20,6 +23,14 @@ def val(model, dataloader, device, num_classes):
         model.eval()
         precision_record = []
         hist = np.zeros((num_classes, num_classes))
+
+        max_miou = 0
+        max_miou_image = 0
+        max_miou_label = 0
+        max_precision = 0
+        max_precision_image = 0
+        max_precision_label = 0
+
         for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
 
@@ -40,18 +51,39 @@ def val(model, dataloader, device, num_classes):
             precision = compute_global_accuracy(predict, label)
             hist += fast_hist(label.flatten(), predict.flatten(), num_classes)
 
-            # there is no need to transform the one-hot array to visual RGB array
-            # predict = colour_code_segmentation(np.array(predict), label_info)
-            # label = colour_code_segmentation(np.array(label), label_info)
+            # if 
+            if precision > max_precision:
+                max_precision = precision
+                max_precision_image = predict
+                max_precision_label = label
+
+            if miou > max_miou:
+                max_miou = miou
+                max_miou_image = predict
+                max_miou_label = label
+
             precision_record.append(precision)
 
         precision = np.mean(precision_record)
         miou_list = per_class_iu(hist)
         miou = np.mean(miou_list)
+
+        #Generate visuals of best accuracy/miou images
+        color_precision_pred,color_precision_lbl = dataset.visualize_prediction(dataset,max_precision_image,max_precision_label)
+        color_miou_pred,color_miou_lbl = dataset.visualize_prediction(dataset,max_miou_image,max_miou_label)
+
+        
+        # Save color precision prediction and label images
+        color_precision_pred.save(os.join(savepath,'color_precision_pred.png'))
+        color_precision_lbl.save(os.join(savepath,'color_precision_lbl.png'))
+        
+        # Save color miou prediction and label images
+        color_miou_pred.save(os.join(savepath,'color_miou_pred.png'))
+        color_miou_lbl.save(os.join(savepath,'color_miou_lbl.png'))
+
+
         print('precision per pixel for test: %.3f' % precision)
         print('mIoU for validation: %.3f' % miou)
         print(f'mIoU per class: {miou_list}')
-
-        print('Generating visualisations')
 
         return precision, miou

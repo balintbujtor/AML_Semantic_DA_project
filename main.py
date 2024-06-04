@@ -7,6 +7,7 @@ import trainings.train_simple as train_simple
 import trainings.train_ADA as train_ADA
 import trainings.train_FDA as train_FDA
 from trainings.val import val
+from trainings.visualize import visualize
 from utils.utils import *
 from utils.fda import test_multi_band_transfer, pseudo_label_gen
 from model.model_stages import BiSeNet
@@ -83,6 +84,9 @@ def main():
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
             is_pseudo = True
+
+        case 'visualize':
+            val_dataset = 'cityscapes'
 
         case _:
             print('Training method not supported \n')
@@ -217,9 +221,18 @@ def main():
         else:
             train_SSL_FDA(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop
             val(model, dataloader_val, device, num_classes)                                            # final test
+    
+    elif action == 'visualize':
+        savePath = 'AML_Semantic_DA_project/visuals'
+        os.makedirs(savePath, exist_ok=True)
+        model.load_state_dict(torch.load(args.load_model_path))
+        visualize(model, val_dataset, dataloader_val, device, num_classes,savePath)
+    
     else:
         print('Training method not supported \n')
         return None
+    
+
         
 if __name__ == "__main__":
         
