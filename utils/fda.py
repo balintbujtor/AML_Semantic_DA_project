@@ -312,10 +312,9 @@ def pseudo_label_gen(args,
         city = name.split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
-        save_path = os.path.join(save_path_w_mode, city)
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+        if not os.path.exists(city):
+            os.makedirs(city)
         
-        output.save('%s/%s' % (save_path, os.path.basename(name))) 
+        output.save('%s/%s' % (city, os.path.basename(name))) 
 
     return
