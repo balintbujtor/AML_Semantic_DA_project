@@ -312,6 +312,8 @@ def pseudo_label_gen(args,
         city = name.split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
+        print(os.listdir())
+
         if not os.path.exists(city):
             os.makedirs(city)
         
