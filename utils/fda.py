@@ -304,7 +304,7 @@ def pseudo_label_gen(args,
         
         # set the label to 255 if the probability is less than the threshold
         for i in range(19):
-            label[   (prob<thres[i]) * (label==i)   ] = 255  
+            label[ (prob<thres[i]) * (label==i) ] = 255  
         output = np.asarray(label, dtype=np.uint8)
         output = Image.fromarray(output)
         
@@ -312,11 +312,10 @@ def pseudo_label_gen(args,
         city = name.split('_')[0]
         
         # e.g. 'Cityscapes/Cityspaces/pseudo_labels/val/hanover/'
-        print(os.listdir())
-
-        if not os.path.exists(city):
-            os.makedirs(city)
+        save_path = os.path.join(save_path_w_mode, city)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
         
-        output.save('%s/%s' % (city, os.path.basename(name))) 
+        output.save('%s/%s' % (save_path, name)) 
 
     return
