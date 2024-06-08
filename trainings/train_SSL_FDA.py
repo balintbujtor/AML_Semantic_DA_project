@@ -91,10 +91,10 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
                 loss_ent = loss_entr(trg_output, ita)
 
                 # Compute the CE loss with the pseudo labels
-                loss1 = loss_func(trg_output, label_trg_psu.squeeze(1))
-                loss2 = loss_func(trg_out16, label_trg_psu.squeeze(1))
-                loss3 = loss_func(trg_out32, label_trg_psu.squeeze(1))
-                loss_seg_pseudo = loss1 + loss2 + loss3            
+                loss_seg_pseudo = loss_func(trg_output, label_trg_psu.squeeze(1))
+                # loss2 = loss_func(trg_out16, label_trg_psu.squeeze(1))
+                # loss3 = loss_func(trg_out32, label_trg_psu.squeeze(1))
+                # loss_seg_pseudo = loss1 + loss2 + loss3            
 
             # Total loss
             loss_total = loss_seg_source + loss_seg_pseudo + entW*loss_ent
