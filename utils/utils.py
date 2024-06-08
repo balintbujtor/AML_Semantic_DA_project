@@ -290,8 +290,8 @@ def group_weight(weight_group, module, norm_layer, lr):
 			if m.bias is not None:
 				group_no_decay.append(m.bias)
 
-	assert len(list(module.parameters())) == len(group_decay) + len(
-		group_no_decay)
+	assert len(list(module.parameters())) == len(group_decay) + len(group_no_decay)
+	
 	weight_group.append(dict(params=group_decay, lr=lr))
 	weight_group.append(dict(params=group_no_decay, weight_decay=.0, lr=lr))
 	return weight_group
