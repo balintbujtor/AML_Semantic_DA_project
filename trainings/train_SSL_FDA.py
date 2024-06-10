@@ -144,6 +144,6 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
                 max_miou = miou          
                 import os
                 os.makedirs(args.save_model_path, exist_ok=True)
-                torch.save(model.module.state_dict(),'best.pth')
+                torch.save(model.module.state_dict(),os.path.join(args.save_model_path, 'best.pth'))
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
