@@ -9,7 +9,7 @@ from utils.utils import *
 from utils.fda import *
 from tqdm import tqdm
 from trainings.val import val
-from utils.utils import v2Normalize
+from utils.transforms import v2Normalize
 
 logger = logging.getLogger()
 
