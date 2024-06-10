@@ -9,7 +9,7 @@ from utils.utils import *
 from utils.fda import *
 from tqdm import tqdm
 from trainings.val import val
-
+from utils.utils import v2Normalize
 
 logger = logging.getLogger()
 
@@ -55,17 +55,26 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
         tq = tqdm(total=min(len(dataloader_source),len(dataloader_target)) * args.batch_size)
         tq.set_description('epoch %d, lr %f' % (epoch, lr ))
         
-        for i, ((data_source, label), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
+        for i, ((data_source, label_source), (data_target, _)) in enumerate(zip(dataloader_source, dataloader_target)):
 
-            # Source to Target, Target to Target : Adapt source image to target image
-            source_in_target = FDA_source_to_target_np(data_source, data_target, L=beta)
-            source_in_target = torch.from_numpy(source_in_target).float()
-            target_in_target = data_target
-               
-            source_image = source_in_target.clone().to(device)
-            target_image = target_in_target.clone().to(device)
-            label = label.long().to(device)
-         
+
+            data_source = data_source.to(device)
+            label_source = label_source.long().to(device)
+
+            data_target = data_target.to(device)
+
+            orig_data_source =  data_source.clone()
+            orig_data_target = data_target.clone()
+
+            source_in_target = FDA_source_to_target(data_source, data_target, L=beta)
+            
+            # Normalize the source and target images
+            source_in_target = source_in_target / 255.0
+            source_in_target = v2Normalize(source_in_target)
+            
+            data_target = torch.clamp(data_target, 0, 255)
+            data_target = v2Normalize(data_target)
+            
             # Clearing the gradients of all optimized variables.  
             # This is necessary before computing the gradients for the current batch, 
             # as you don't want gradients from previous iterations affecting the current iteration.
@@ -74,18 +83,18 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
             with amp.autocast():
                 
                 # Predict and compute the segmentation loss on the source domain
-                source_output, source_out16, source_out32 = model(source_image)
-                loss1 = loss_func(source_output, label.squeeze(1))
-                loss2 = loss_func(source_out16, label.squeeze(1))
-                loss3 = loss_func(source_out32, label.squeeze(1))
-                loss_source = loss1 + loss2 + loss3
+                source_output, source_out16, source_out32 = model(source_in_target)
+                loss1 = loss_func(source_output, label_source.squeeze(1))
+                loss2 = loss_func(source_out16, label_source.squeeze(1))
+                loss3 = loss_func(source_out32, label_source.squeeze(1))
+                loss_seg_source = loss1 + loss2 + loss3
                 
                 # Predict and compute the entropy minimization loss on the target domain
-                target_output, _, _ = model(target_image)
+                target_output, target_out16, target_out32 = model(data_target)
                 loss_target = loss_entr(target_output, ita)
 
             # Total loss
-            loss_total = loss_source + loss_target *entW
+            loss_total = loss_seg_source + loss_target *entW
 
             scaler.scale(loss_total).backward()
             scaler.step(optimizer)

@@ -67,7 +67,10 @@ def main():
         case 'train_fda':
             train_dataset = 'gta5'
             target_dataset = 'cityscapes'
-            val_dataset = 'cityscapes'          
+            val_dataset = 'cityscapes'    
+            aug_method = 'nonorm'
+            aug_method_trg = 'nonorm'
+      
         
         case 'val_mbt':
             val_dataset = 'cityscapes' 
