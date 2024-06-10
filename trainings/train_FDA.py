@@ -69,10 +69,10 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
             source_in_target = FDA_source_to_target(data_source, data_target, L=beta)
             
             # Normalize the source and target images
-            source_in_target = source_in_target / 255.0
+            source_in_target = torch.clamp(source_in_target, 0, 255) # / 255.0
             source_in_target = v2Normalize(source_in_target)
             
-            data_target = torch.clamp(data_target, 0, 255)
+            data_target = torch.clamp(data_target, 0, 255) # data_target / 255.0
             data_target = v2Normalize(data_target)
             
             # Clearing the gradients of all optimized variables.  
