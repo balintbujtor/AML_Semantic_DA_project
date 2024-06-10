@@ -81,10 +81,10 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
             source_in_target = fda.FDA_source_to_target(data_source, data_target, L=beta)
             
             # Normalize the source and target images
-            source_in_target = source_in_target / 255.0
+            source_in_target = torch.clamp(source_in_target, 0, 255)
             source_in_target = v2Normalize(source_in_target)
             
-            data_target = data_target / 255.0
+            data_target = torch.clamp(data_target, 0, 255)
             data_target = v2Normalize(data_target)
 
             ## clearing the gradients of all optimized variables. This is necessary 
