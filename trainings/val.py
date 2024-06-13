@@ -23,7 +23,8 @@ def val(model, dataloader, device, num_classes):
         for i, (data, label) in enumerate(dataloader):
             label = label.type(torch.LongTensor)
 
-            data = data.to(device)
+            # to ensure that the input and the model have the same data type
+            data = data.float().to(device)
             label = label.long().to(device)
 
             # get RGB predict image
@@ -52,6 +53,5 @@ def val(model, dataloader, device, num_classes):
         print('mIoU for validation: %.3f' % miou)
         print(f'mIoU per class: {miou_list}')
 
-        print('Generating visualisations')
 
         return precision, miou
