@@ -191,7 +191,7 @@ def main():
             model.load_state_dict(torch.load(args.load_model_path))
             val(model, dataloader_val, device, num_classes)
         else: 
-            train_ADA.train(args, model, disc_model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword)      ## train loop
+            train_ADA.train(args, model, disc_model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, num_classes, device, save_subdir_path, save_keyword)      ## train loop
             val(model, dataloader_val, device, num_classes)
               
     elif action == 'train_fda':

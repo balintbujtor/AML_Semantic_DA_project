@@ -14,7 +14,7 @@ from trainings.val import val
 logger = logging.getLogger()
 
 
-def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, device, save_subdir_path, save_keyword):
+def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source, dataloader_target, dataloader_val, num_classes, device, save_subdir_path, save_keyword):
     """
     Adversarial training function.
     The training is performed on the GTA5 dataset as the source domain,
@@ -34,6 +34,7 @@ def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source,
         dataloader_source (_type_): The dataloader for the source dataset. (GTA5)
         dataloader_target (_type_): The dataloader for the target dataset. (Cityscapes)
         dataloader_val (_type_): The dataloader for the validation dataset. (Cityscapes)
+        num_classes (_type_): The number of classes in the dataset. (19)
         device (_type_): The device to train on, either cuda or cpu
         save_subdir_path (_type_): The path to save the model checkpoints.
         save_keyword (_type_): Keyword to save the model with.
@@ -119,7 +120,7 @@ def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source,
 
             ## Train with target data -- fooling 
             with amp.autocast():
-                D_t_output = disc_model(F.softmax(target_output))
+                D_t_output = disc_model(F.softmax(target_output, dim=1))
                 
                 loss_adv_target = adv_loss_func(D_t_output,
                                             torch.FloatTensor(D_t_output.data.size()).fill_(label_source).to(device))
@@ -140,7 +141,7 @@ def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source,
 
             ## Training on the source domain
             with amp.autocast():
-                D_out1_s = disc_model(F.softmax(source_output))
+                D_out1_s = disc_model(F.softmax(source_output, dim=1))
                 loss_D1_s = disc_loss_func(D_out1_s,
                                           torch.FloatTensor(D_out1_s.data.size()).fill_(label_source).to(device))
             
@@ -148,7 +149,7 @@ def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source,
             
             ## Training on the traget domain
             with amp.autocast():
-                D_out1_t = disc_model(F.softmax(target_output))
+                D_out1_t = disc_model(F.softmax(target_output, dim=1))
                 loss_D1_t = disc_loss_func(D_out1_t,
                                           torch.FloatTensor(D_out1_t.data.size()).fill_(label_source).to(device))
             scaler.scale(loss_D1_t).backward()
@@ -180,7 +181,7 @@ def train(args, model, disc_model, optimizer, disc_optimizer, dataloader_source,
 
 
         if epoch % args.validation_step == 0 and epoch != 0:
-            precision, miou = val(args, model, dataloader_val, device)
+            precision, miou = val(model, dataloader_val, device, num_classes)
             if miou > max_miou:
                 max_miou = miou
                 saveName = save_keyword + '-best'
