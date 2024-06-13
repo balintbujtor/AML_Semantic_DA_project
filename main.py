@@ -35,7 +35,7 @@ def main():
     save_subdir_path = make_saveDir(save_model_path,save_keyword)
     val_only = True if args.validation_only else False
     aug_method = args.aug_method
-    
+    aug_method_trg = ''
     action = args.action
     batch_size = args.batch_size
     
@@ -85,6 +85,8 @@ def main():
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
             is_pseudo = True
+            aug_method = 'nonorm'
+            aug_method_trg = 'nonorm'
 
         case 'visualize':
             val_dataset = 'cityscapes'
@@ -100,7 +102,7 @@ def main():
         
     if target_dataset == 'cityscapes':
         print("dataloader_target is on cityscapes")
-        target_dataset = CityScapes(aug_method='', split='train', is_pseudo=is_pseudo)
+        target_dataset = CityScapes(aug_method=aug_method_trg, split='train', is_pseudo=is_pseudo)
         dataloader_target = DataLoader(target_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
 
     if val_dataset == 'cityscapes':

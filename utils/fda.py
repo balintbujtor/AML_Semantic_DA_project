@@ -65,6 +65,43 @@ def FDA_source_to_target_np( src_img, trg_img, L=0.1 ):
     return src_in_trg
 
 
+def low_freq_mutate( amp_src, amp_trg, L=0.1 ):
+    _, _, h, w = amp_src.size()
+    b = (  np.floor(np.amin((h,w))*L)  ).astype(int)
+    if b == 0:
+        raise ValueError('L is too small')
+    
+    amp_src[:, :, 0:b, 0:b] = amp_trg[:, :, 0:b, 0:b]
+    
+    return amp_src
+
+
+def FDA_source_to_target( src_img, trg_img, L=0.1 ):
+    
+    fft_src = torch.fft.fft2(src_img.clone())
+    fft_trg = torch.fft.fft2(trg_img.clone())
+    
+    fft_src_clone = fft_src.clone()
+    fft_trg_clone = fft_trg.clone()
+    
+    amp_src, pha_src = torch.abs(fft_src_clone), torch.angle(fft_src_clone)
+    amp_trg, pha_trg = torch.abs(fft_trg_clone), torch.angle(fft_trg_clone)
+    
+    amp_src_mut = low_freq_mutate( amp_src.clone(), amp_trg.clone(), L=L )
+    
+    real = torch.cos(pha_src.clone()) * amp_src_mut.clone()
+    imag = torch.sin(pha_src.clone()) * amp_src_mut.clone()
+    
+    fft_src_new = torch.complex(real, imag)
+    
+    _, _, h, w = src_img.size()
+    src_in_trg = torch.fft.ifft2(fft_src_new, s=(h, w))
+    src_in_trg = torch.real(src_in_trg)
+    src_in_trg = torch.clamp(src_in_trg, 0, 255)
+    
+    return src_in_trg
+
+
 class EntropyLoss(nn.Module):
     """
     Loss function FDA
