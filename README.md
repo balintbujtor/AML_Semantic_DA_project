@@ -193,8 +193,14 @@ average time:
 
 ```
 saveFile: cityscapes_sgd_aug
-date: 
-average time:
+date: 13/06/2024
+average time: 04:54
+precision per pixel for test: 0.809
+mIoU for validation: 0.577
+mIoU per class: [0.9664938  0.74209076 0.86594684 0.35723786 0.38981603 0.33005452
+ 0.36404568 0.50921786 0.87295715 0.50168498 0.90336943 0.63642638
+ 0.34947035 0.88920422 0.38396566 0.4976506  0.49032949 0.30773642
+ 0.60356695]
 ```
  
 - **training & validation on GTA5:**
@@ -212,10 +218,12 @@ mIoU per class: [0.96391841 0.70049577 0.7932551  0.55256778 0.24198456 0.355094
 ```
 
 ```
-!!! Running validation again
 saveFile: gta5_adam_aug
 date: 
 average time: 
+precision per pixel for test: 0.737
+mIoU for validation: 0.467
+mIoU per class: [ 0.91391841, 0.75049577, 0.8432551, 0.60256778, 0.19198456, 0.30509488, 0.27561131, 0.190652, 0.79605463, 0.6221074, 0.99207433, 0.24218172, 0.21312223, 0.59258123, 0.58373726, 0.39477375, 0.66858683, 0.29296685, 0.02603143 ]
 ```
 
 ```
