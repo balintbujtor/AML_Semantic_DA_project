@@ -173,7 +173,7 @@ def test_multi_band_transfer(args,
     with torch.no_grad():
         for i, (data, label) in enumerate(dataloader_target_val):
             
-            data = data.to(device)
+            data = data.float().to(device)
             label = label.long().to(device)
             
             # take the predictions of the 3 models and average them
@@ -267,7 +267,7 @@ def pseudo_label_gen(args,
         for i, (data, label) in enumerate(dataloader):
             
             batch_size = data.size(0)
-            data = data.to(device)
+            data = data.float().to(device)
             
             # not needed for the pseudo label generation
             label = label.long().to(device)
