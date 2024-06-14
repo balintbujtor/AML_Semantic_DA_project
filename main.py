@@ -29,7 +29,7 @@ def main():
     args = parse_args()
 
     # Handling checkpoint saves in a sub-folder
-    save_keyword = args.save_keyword
+    save_keyword = args.save_keyword if args.save_keyword else 'save'
     save_model_path = args.save_model_path
     save_subdir_path = make_saveDir(save_model_path,save_keyword)
     val_only = True if args.validation_only else False
