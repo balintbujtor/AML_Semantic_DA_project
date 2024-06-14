@@ -65,7 +65,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
     | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
     |---------|----------------|------------|-----------------------------|
     | config1 |      78.2      |            |                             |
-    | config2 |                |            |                             |
+    | config2 |      76.3      |            |                             |
 
 
 
@@ -193,8 +193,14 @@ mIoU per class: [0.9664938  0.74209076 0.86594684 0.35723786 0.38981603 0.330054
 
 ```
 saveFile: cityscapes_sgd_noaug
-date: 
-average time:
+date: 30/05/2024
+average time: 
+precision per pixel for test: 0.806
+mIoU for validation: 0.635 
+mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.44041994 
+ 0.43625819 0.42785542 0.79300035 0.72702806 0.94575292 0.42805126 
+ 0.46199698 0.86912983 0.79643663 0.82218002 0.80119309 0.49816757 
+ 1.        ]
 
 ```
 
