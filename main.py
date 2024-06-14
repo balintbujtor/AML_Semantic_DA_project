@@ -88,7 +88,7 @@ def main():
 
         case 'visualize':
             val_dataset = 'cityscapes'
-
+            batch_size = 1 # to avoid not checking each image in the dataset
         case _:
             print('Training method not supported \n')
 
@@ -230,10 +230,10 @@ def main():
         savePath = 'AML_Semantic_DA_project/visuals'
         os.makedirs(savePath, exist_ok=True)
  
-        visualize(model, val_dataset, dataloader_val, device, num_classes,savePath)
+        visualize(model, dataloader_val, device, num_classes, action, savePath)
     
     else:
-        print('Training method not supported \n')
+        print('Action not supported \n')
         return None
     
 
