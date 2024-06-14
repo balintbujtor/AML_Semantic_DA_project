@@ -239,10 +239,6 @@ def main():
 
         
 if __name__ == "__main__":
-        
-    # TODO: perfrom MBT
-    # TODO: generate pseudo labels
-    # TODO: train SSL FDA
     
     main()
 
