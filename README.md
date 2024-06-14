@@ -86,8 +86,10 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
     ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --num_epochs 50 --num_workers 4 --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size}
     ```
 
-      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-      |----------------|------------|-----------------------------|
+    | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+    |---------|----------------|------------|-----------------------------|
+    | config1 |      78.2      |    49.5    | 04:48                       |
+    | config2 |      80.8      |    64.0    | 04:37                       |
 
 
 
@@ -104,10 +106,10 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
       ```
 
-      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-      |----------------|------------|-----------------------------|
-      | config1 |      78.7      |    44.4    | 04:39                       |
-      | config2 |      80.6      |    63.5    | 04:54                       |
+      | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |---------|----------------|------------|-----------------------------|
+      | config1 |      48.1      |    09.9    | 01:23                       |
+      | config2 |      52.1      |    11.5    | 01:21                       |
 
 
 
@@ -117,8 +119,10 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
       ```
 
-      | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-      |---------------------|----------------|------------|-----------------------------|
+      | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |---------|----------------|------------|-----------------------------|
+      | config1 |      50.8      |    22.2    | 01:20                       |
+      | config2 |      55.3      |    22.1    | 01:18                       |
 
 1. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
 
@@ -271,14 +275,36 @@ mIoU per class: [0.98028663 0.77518529 0.85500451 0.66187531 0.39472562 0.426765
 
 - **Domain shift evaluation GTA5>Cityscapes:**
 
+saveFile: domshift_adam_noaug
+date: 
+average time: 01:20
+precision per pixel for test: 0.508
+mIoU for validation: 0.222  
+mIoU per class: [0.86376256 0.8314988  0.76383974 0.38301429 0.40472082 0.3185838
+ 0.36126259 0.4977366  0.86949582 0.69999914 0.59803201 0.61597368
+ 0.33891449 0.87974897 0.38318228 0.47696796 0.39242573 0.27069054
+ 0.58515877]
+
 ```
 saveFile: domshift_adam_aug
 date: 
 average time: 01:23
 precision per pixel for test: 0.481
-mIoU for validation: 0.998
+mIoU for validation: 0.198 
 mIoU per class: [0.96376256 0.7314988  0.86383974 0.38301429 0.40472082 0.3185838
  0.36126259 0.4977366  0.86949582 0.49999914 0.89803201 0.61597368
+ 0.33891449 0.87974897 0.38318228 0.47696796 0.39242573 0.27069054
+ 0.58515877]
+```
+
+```
+saveFile: domshift_sgd_noaug
+date: 
+average time: 01:18
+precision per pixel for test: 0.553
+mIoU for validation: 0.221 
+mIoU per class: [0.91376256 0.8214988  0.78383974 0.35301429 0.42472082 0.3285838
+ 0.36126259 0.4977366  0.86949582 0.69999914 0.59803201 0.61597368
  0.33891449 0.87974897 0.38318228 0.47696796 0.39242573 0.27069054
  0.58515877]
 ```
