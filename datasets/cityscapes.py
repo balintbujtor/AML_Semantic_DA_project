@@ -127,11 +127,17 @@ class CityScapes(VisionDataset):
         lbl = Image.open(self.label_paths[idx])
 
         # Apply std transformation
-        img = transforms.img_std_transformations["std_cityscapes"](img)
-        lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
+        if self.aug_method == '':
+            img = transforms.img_std_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
 
+        # no normalization for fda
+        elif self.aug_method == 'nonorm':
+            img = transforms.img_nonorm_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_nonorm_transformations["std_cityscapes"](lbl)
+            
         # Apply augmentation
-        if self.aug_method != '':
+        elif self.aug_method != '' and self.aug_method != 'nonorm':
             if rd.random() < 0.5:
                 img = transforms.img_aug_transformations[self.aug_method](img)
                 lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)

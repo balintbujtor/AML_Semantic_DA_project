@@ -160,15 +160,15 @@ class GTA5(torchDataset):
 
         # Apply std transformations
         if self.training_method == 'train_fda' or self.training_method == 'train_ssl_fda' :
-            img = transforms.img_std_transformations["std_cityscapes"](img)
-            lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
+            img = transforms.img_nonorm_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_nonorm_transformations["std_cityscapes"](lbl)
 
         else:
             img = transforms.img_std_transformations["std_gta5"](img)
             lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
 
         # Apply augmentation
-        if self.aug_method != '':
+        if self.aug_method != '' and self.aug_method != 'nonorm':
             if rd.random() < 0.5:
                 img = transforms.img_aug_transformations[self.aug_method](img)
                 lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)

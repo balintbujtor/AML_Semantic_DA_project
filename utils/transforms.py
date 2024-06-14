@@ -23,11 +23,26 @@ rdSolarize = v2.RandomSolarize(p = 1, threshold = 0.4)
 
 to_tensor = v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32, scale=True)])
 
+v2Normalize = v2.Normalize(mean=MEAN, std=STD)
+
+# Define standard transformations
+img_nonorm_transformations = {
+    "std_cityscapes" : v2.Compose([v2.Resize((512, 1024), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float32, scale=False)]),
+    "std_gta5" : v2.Compose([v2.Resize((526,957), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float32, scale=False)])
+}
+
+lbl_nonorm_transformations = {
+    # Image.NEAREST s.t. the label values are kept
+    # PILToTensor() to avoid normalizing into (0,1),
+    "std_cityscapes" : v2.Compose([v2.Resize((512, 1024),Image.NEAREST),v2.PILToTensor()]), 
+    "std_gta5" : v2.Compose([v2.Resize((526,957),Image.NEAREST),v2.PILToTensor()])
+}
 
 # Define standard transformations
 img_std_transformations = {
-    "std_cityscapes" : v2.Compose([v2.Resize((512, 1024), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float32, scale=True),v2.Normalize(mean=MEAN, std=STD)]),
-    "std_gta5" : v2.Compose([v2.Resize((526,957), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float32, scale=True),v2.Normalize(mean=MEAN, std=STD)])
+    # this can be source of error float16 should be the datatype (before it was float32)
+    "std_cityscapes" : v2.Compose([v2.Resize((512, 1024), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float16, scale=True),v2.Normalize(mean=MEAN, std=STD)]),
+    "std_gta5" : v2.Compose([v2.Resize((526,957), Image.BILINEAR),v2.ToImage(), v2.ToDtype(torch.float16, scale=True),v2.Normalize(mean=MEAN, std=STD)])
 }
 
 lbl_std_transformations = {

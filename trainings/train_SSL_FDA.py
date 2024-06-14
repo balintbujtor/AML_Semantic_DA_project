@@ -11,7 +11,7 @@ import utils.fda as fda
 from utils.fda import *
 from tqdm import tqdm
 from trainings.val import val
-
+from utils.transforms import v2Normalize
 
 logger = logging.getLogger()
 
@@ -61,16 +61,31 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
         for i, ((data_source, label_source), (data_target, label_target_pseudo)) in enumerate(zip(dataloader_train_source, dataloader_train_target_SSL)):
 
 
-            # 1. Source to Target, Target to Target : Adapt source image to target image
-            source_in_target = fda.FDA_source_to_target_np(data_source, data_target, L=beta)
-            source_in_target = torch.from_numpy(source_in_target).float()
-            target_in_target = data_target
-
-            image_src = source_in_target.clone().to(device)
-            label_src = label_source.long().to(device)
+            data_source = data_source.to(device)
+            label_source = label_source.long().to(device)
             
-            image_trg = target_in_target.clone().to(device)
-            label_trg_psu = label_target_pseudo.long().to(device)
+            data_target = data_target.to(device)
+            label_target_pseudo = label_target_pseudo.long().to(device)
+            
+            specified_values = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 255])
+            mask = ~torch.isin(label_target_pseudo, specified_values.cuda()) 
+            if torch.any(mask):
+                print("Pseudo labels contain incorrect values")
+                print("Incorrect values: ", torch.unique(label_target_pseudo[mask]))
+                raise ValueError("Pseudo labels contain incorrect values")
+                
+                
+            orig_data_source =  data_source.clone()
+            orig_data_target = data_target.clone()
+            
+            source_in_target = fda.FDA_source_to_target(data_source, data_target, L=beta)
+            
+            # Normalize the source and target images
+            source_in_target = source_in_target / 255.0
+            source_in_target = v2Normalize(source_in_target)
+            
+            data_target = data_target / 255.0
+            data_target = v2Normalize(data_target)
 
             ## clearing the gradients of all optimized variables. This is necessary 
             ## before computing the gradients for the current batch, 
@@ -80,21 +95,21 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
             with amp.autocast():
                 
                 # Predict and compute the segmentation loss on the source domain
-                source_output, source_out16, source_out32 = model(image_src)
-                loss1 = loss_func(source_output, label_src.squeeze(1))
-                loss2 = loss_func(source_out16, label_src.squeeze(1))
-                loss3 = loss_func(source_out32, label_src.squeeze(1))
+                source_output, source_out16, source_out32 = model(source_in_target)
+                loss1 = loss_func(source_output, label_source.squeeze(1))
+                loss2 = loss_func(source_out16, label_source.squeeze(1))
+                loss3 = loss_func(source_out32, label_source.squeeze(1))
                 loss_seg_source = loss1 + loss2 + loss3
                 
                 # Predict and compute the entropy minimization loss on the target domain
-                trg_output, trg_out16, trg_out32 = model(image_trg)
+                trg_output, trg_out16, trg_out32 = model(data_target)
                 loss_ent = loss_entr(trg_output, ita)
 
                 # Compute the CE loss with the pseudo labels
-                loss_seg_pseudo = loss_func(trg_output, label_trg_psu.squeeze(1))
-                # loss2 = loss_func(trg_out16, label_trg_psu.squeeze(1))
-                # loss3 = loss_func(trg_out32, label_trg_psu.squeeze(1))
-                # loss_seg_pseudo = loss1 + loss2 + loss3            
+                loss1 = loss_func(trg_output, label_target_pseudo.squeeze(1))
+                loss2 = loss_func(trg_out16, label_target_pseudo.squeeze(1))
+                loss3 = loss_func(trg_out32, label_target_pseudo.squeeze(1))
+                loss_seg_pseudo = loss1 + loss2 + loss3            
 
             # Total loss
             loss_total = loss_seg_source + loss_seg_pseudo + entW*loss_ent
@@ -127,10 +142,8 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
             
             if miou > max_miou:
                 max_miou = miou          
-                import os,datetime
+                import os
                 os.makedirs(args.save_model_path, exist_ok=True)
-                timestamp = datetime.datetime.now().strftime('%Y-%m-%dZ%H:%M:%S') + '.pth'
-                torch.save(model.module.state_dict(), os.path.join(args.save_model_path, 'best'+timestamp+'.pth'))
-
+                torch.save(model.module.state_dict(),os.path.join(args.save_model_path, 'best.pth'))
             writer.add_scalar('epoch/precision_val', precision, epoch)
             writer.add_scalar('epoch/miou val', miou, epoch)
