@@ -227,7 +227,7 @@ mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.440419
 ```
 saveFile: gta5_adam_noaug
 date: 10/04/2024
-average time: 
+average time: 04:48
 precision per pixel for test: 0.782 
 mIoU for validation: 0.495 
 mIoU per class: [0.96391841 0.70049577 0.7932551  0.55256778 0.24198456 0.35509488 
@@ -238,7 +238,7 @@ mIoU per class: [0.96391841 0.70049577 0.7932551  0.55256778 0.24198456 0.355094
 
 ```
 saveFile: gta5_adam_aug
-date: 
+date: 04:44
 average time: 
 precision per pixel for test: 0.737
 mIoU for validation: 0.467
@@ -248,7 +248,7 @@ mIoU per class: [ 0.91391841, 0.75049577, 0.8432551, 0.60256778, 0.19198456, 0.3
 ```
 saveFile: gta5_sgd_noaug
 date:
-average time:
+average time: 04:37
 precision per pixel for test: 0.808 
 mIoU for validation: 0.640 
 mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.44041994 
@@ -260,7 +260,7 @@ mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.440419
 ```
 saveFile: gta5_sgd_aug
 date:
-average time:
+average time: 04:36
 precision per pixel for test: 0.806 
 mIoU for validation: 0.625 
 mIoU per class: [0.98028663 0.77518529 0.85500451 0.66187531 0.39472562 0.42676516 
@@ -274,7 +274,7 @@ mIoU per class: [0.98028663 0.77518529 0.85500451 0.66187531 0.39472562 0.426765
 ```
 saveFile: domshift_adam_aug
 date: 
-average time: -
+average time: 01:23
 precision per pixel for test: 0.481
 mIoU for validation: 0.998
 mIoU per class: [0.96376256 0.7314988  0.86383974 0.38301429 0.40472082 0.3185838
@@ -286,7 +286,7 @@ mIoU per class: [0.96376256 0.7314988  0.86383974 0.38301429 0.40472082 0.318583
 ```
 saveFile: domshift_sgd_aug
 date:
-average time: 
+average time: 01:21
 precision per pixel for test: 0.521
 mIoU for validation: 0.115
 mIoU per class: [7.61754694e-01 1.71559990e-02 2.95094636e-01 1.65790444e-05
