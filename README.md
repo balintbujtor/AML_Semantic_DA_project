@@ -64,19 +64,31 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
     | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
     |---------|----------------|------------|-----------------------------|
-    | config1 |      78.2      |            |                             |
-    | config2 |      76.3      |            |                             |
+    | config1 |      78.7      |    44.4    | 04:39                       |
+    | config2 |      80.6      |    63.5    | 04:54                       |
 
 
 
   1.B - Train on the synthetic dataset.
 
-      ```bash
+    ```bash
+    action = 'train_simple_gta5'
+    pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+    save_model_path = 'AML_Semantic_DA_project/checkpoints/'
+    num_epochs = 50
+    num_workers = 4
+    save_keyword = 'Gta5_Simple_test_1'
+    batchsize=8
+    lr=0.01
+    optimizer = 'sgd'
+    batch_size = 8
 
-      ```
+    ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --num_epochs 50 --num_workers 4 --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size}
+    ```
 
       | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |----------------|------------|-----------------------------|
+
 
 
   1.C - Evaluate the domain shift.
@@ -84,11 +96,20 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       Test the model trained at step B on the cityscapes val set.
 
       ```bash
+      action = 'val_gta5_transfer'
+      pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+      num_workers = 4
+      load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_aug/best.pth'
 
+      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
       ```
 
-      | Accuracy _(%)_ | mIoU _(%)_ |
-      |----------------|------------|
+      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |----------------|------------|-----------------------------|
+      | config1 |      78.7      |    44.4    | 04:39                       |
+      | config2 |      80.6      |    63.5    | 04:54                       |
+
+
 
   1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
 
@@ -99,7 +120,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------------------|----------------|------------|-----------------------------|
 
-2. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
+1. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
 
     ```bash
 
@@ -150,21 +171,6 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
 ## Results
 
-Common parameters:
-- Base model: STDC
-- Epochs: 50
-- Discriminator: Adam
-
-| Experiment                                       | Accuracy (%) | mIoU (%) | Time (avg per-epoch) | saveFile |
-| ------------------------------------------------ | ------------ | -------- | -------------------- | -------- |
-| training & validation on Cityscapes              |     78.7     |  44.4    |                      |          |
-| training & validation on GTA5                    |     78.2     |  49.5    |                      |          |
-| Domain shift evaluation GTA5>Cityscapes          |     52.1     |  11.5    |                      |          |
-| ADA GTA5>Cityscapes without data augmentation    |     59.4     |  19.3    |                      |          |
-| ADA GTA5>Cityscapes with data augmentation       |     67.2     |  20.1    |                      |          |
-| SSL FDA GTA5>Cityscapes with data augmentation   |              |          |                      |          |
-| SSL FDA GTA5>Cityscapes without data augmentation|              |          |                      |          |
-
 ### Detailed Results
 - **training & validation on Cityscapes:**
 ```
@@ -194,26 +200,26 @@ mIoU per class: [0.9664938  0.74209076 0.86594684 0.35723786 0.38981603 0.330054
 ```
 saveFile: cityscapes_sgd_noaug
 date: 30/05/2024
-average time: 
+average time: 04:53
 precision per pixel for test: 0.806
 mIoU for validation: 0.635 
 mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.44041994 
  0.43625819 0.42785542 0.79300035 0.72702806 0.94575292 0.42805126 
  0.46199698 0.86912983 0.79643663 0.82218002 0.80119309 0.49816757 
- 1.        ]
+ 1.]
 
 ```
 
 ```
 saveFile: cityscapes_sgd_aug
 date: 30/05/2024
-average time: 
+average time: 04:47
 precision per pixel for test: 0.808 
 mIoU for validation: 0.640 
 mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.44041994 
  0.43625819 0.42785542 0.79300035 0.72702806 0.94575292 0.42805126 
  0.46199698 0.86912983 0.79643663 0.82218002 0.80119309 0.49816757 
- 1.        ]
+ 1.]
 ```
  
 - **training & validation on GTA5:**
