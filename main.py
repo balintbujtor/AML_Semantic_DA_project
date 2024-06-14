@@ -177,6 +177,7 @@ def main():
     ## model
     model = BiSeNet(backbone=args.backbone, n_classes=n_classes, pretrain_model=args.pretrain_path, use_conv_last=args.use_conv_last)
     if args.load_checkpoint != '':
+        print(f"Loading checkpoint from {args.load_checkpoint}")
         model.load_state_dict(torch.load(args.load_checkpoint))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
