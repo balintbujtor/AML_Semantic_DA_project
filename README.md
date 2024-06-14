@@ -195,12 +195,20 @@ mIoU per class: [0.9664938  0.74209076 0.86594684 0.35723786 0.38981603 0.330054
 saveFile: cityscapes_sgd_noaug
 date: 
 average time:
+
 ```
 
 ```
 saveFile: cityscapes_sgd_aug
-date: 13/06/2024
+date: 30/05/2024
 average time: 
+precision per pixel for test: 0.808 
+mIoU for validation: 0.640 
+mIoU per class: [0.9819757  0.78998446 0.85908591 0.66922654 0.41422396 0.44041994 
+ 0.43625819 0.42785542 0.79300035 0.72702806 0.94575292 0.42805126 
+ 0.46199698 0.86912983 0.79643663 0.82218002 0.80119309 0.49816757 
+ 1.        ]
+```
 ```
  
 - **training & validation on GTA5:**
@@ -253,7 +261,19 @@ mIoU per class: [0.98028663 0.77518529 0.85500451 0.66187531 0.39472562 0.426765
 - **Domain shift evaluation GTA5>Cityscapes:**
 
 ```
-saveFile:
+saveFile: domshift_adam_aug
+date: 
+average time: -
+precision per pixel for test: 0.481
+mIoU for validation: 0.998
+mIoU per class: [0.96376256 0.7314988  0.86383974 0.38301429 0.40472082 0.3185838
+ 0.36126259 0.4977366  0.86949582 0.49999914 0.89803201 0.61597368
+ 0.33891449 0.87974897 0.38318228 0.47696796 0.39242573 0.27069054
+ 0.58515877]
+```
+
+```
+saveFile: domshift_sgd_aug
 date:
 average time: 
 precision per pixel for test: 0.521
@@ -265,18 +285,14 @@ mIoU per class: [7.61754694e-01 1.71559990e-02 2.95094636e-01 1.65790444e-05
  0.00000000e+00 0.00000000e+00 0.00000000e+00]
 ```
 
-```
-saveFile:
-date:
-average time: 
-```
 
-- **ADA without data aug:**
+
+- **ADA GTA5>Cityscapes:**
 
 ```
-saveFile:
+saveFile: ada_adam_aug
 date:
-average time: 
+average time: 05:13
 precision per pixel for test: 0.594
 mIoU for validation: 0.193
 mIoU per class: [6.81801228e-01 1.07932154e-01 6.66776069e-01 5.99369935e-02
@@ -286,12 +302,10 @@ mIoU per class: [6.81801228e-01 1.07932154e-01 6.66776069e-01 5.99369935e-02
  4.24880613e-03 1.70739188e-02 2.84853135e-04]
 ```
 
-- **ADA with data aug:**
-
 ```
-saveFile:
-date: 26/05/2024
-average time: 
+saveFile: ada_sgd_aug
+date: 07/06/2024
+average time: 05:11
 precision per pixel for test: 0.672
 mIoU for validation: 0.201
 mIoU per class: [8.55649679e-01 8.32756948e-02 6.50656282e-01 7.27817810e-02
