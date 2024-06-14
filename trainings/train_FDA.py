@@ -65,10 +65,10 @@ def train(args, model, optimizer, dataloader_source, dataloader_target, dataload
             source_in_target = FDA_source_to_target(data_source, data_target, L=beta)
             
             source_in_target = source_in_target / 255.0
-            source_in_target = source_in_target.v2Normalize(source_in_target)
+            source_in_target = v2Normalize(source_in_target)
             
             data_target = data_target / 255.0
-            data_target = data_target.v2Normalize(data_target)
+            data_target = v2Normalize(data_target)
          
             # Clearing the gradients of all optimized variables.  
             # This is necessary before computing the gradients for the current batch, 
