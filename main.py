@@ -221,7 +221,6 @@ def main():
         
     elif action == 'train_ssl_fda':
         if val_only:
-     
             val(model, dataloader_val, device, num_classes)
         else:
             train_SSL_FDA(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop

@@ -49,6 +49,9 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
       | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |----------------|------------|-----------------------------|
+      |                |            |                             |
+      |                |            |                             |
+      |                |            |                             |
 
 
   1.B - Train on the synthetic dataset.
