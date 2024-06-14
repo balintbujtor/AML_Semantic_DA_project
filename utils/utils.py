@@ -330,7 +330,7 @@ def parse_args():
 	# save / load params
 	parse.add_argument('--pretrain_path', dest='pretrain_path', type=str, default='', help='path to load pretrained BACKBONE')
 	parse.add_argument('--load_model_path', type=str, default=None, help='path to load pretrained model')
-	parse.add_argument('--save_model_path', type=str, default=None, help='path to save model')
+	parse.add_argument('--save_model_path', type=str, default='.', help='path to save model')
 	parse.add_argument('--save_keyword', type=str, default='save', help='Keyword to be used on the checkpoint file.')
 
 	# misc params
