@@ -563,4 +563,8 @@ def parse_args():
                        default='',
                        help='Keyword to be used on the checkpoint file.')
 	
+    parse.add_argument('--load_checkpoint',                       
+					   type=str,
+                       default='')
+	
     return parse.parse_args()
