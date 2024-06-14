@@ -95,62 +95,61 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
     1.C - Evaluate the domain shift.
 
-        Test the model trained at step B on the cityscapes val set.
+      Test the model trained at step B on the cityscapes val set.
 
-        ```bash
-        action = 'val_gta5_transfer'
-        pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-        num_workers = 4
-        load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_noaug/best.pth'
+      ```bash
+      action = 'val_gta5_transfer'
+      pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+      num_workers = 4
+      load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_noaug/best.pth'
 
-        ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
-        ```
+      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
+      ```
 
-        | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-        |---------|----------------|------------|-----------------------------|
-        | config1 |      52.1      |    11.5    | 01:20                       |
-        | config2 |      55.3      |    22.1    | 01:18                       |
+      | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |---------|----------------|------------|-----------------------------|
+      | config1 |      52.1      |    11.5    | 01:20                       |
+      | config2 |      55.3      |    22.1    | 01:18                       |
 
 
 
     1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
 
-        ```bash
-        action = 'val_gta5_transfer'
-        pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-        num_workers = 4
-        load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_aug/best.pth'
-
-        ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
-        ```
-
-        | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-        |---------|----------------|------------|-----------------------------|
-        | config1 |      43.2      |    14.2    | 01:23                       |
-        | config2 |      44.7      |    15.6    | 01:18                       |
-
-1. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
-
       ```bash
-      training_method =  'train_ada'
+      action = 'val_gta5_transfer'
       pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-      save_model_path = 'AML_Semantic_DA_project/checkpoints/'
-      batch_size = 8
-      num_epochs = 50
-      num_workers = 2
-      aug_method = 'C-S-HF'
-      optimizer = 'sgd'
-      save_keyword = 'ADA_gta5TOcityscapes_augC-S-HF'
-      lr = 0.01
+      num_workers = 4
+      load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_aug/best.pth'
 
-
-      ! python AML_Semantic_DA_project/main.py --action {training_method} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size} --aug_method {aug_method}
+      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
       ```
 
       | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|----------------|------------|-----------------------------|
-      | config1 |      59.4      |    19.3    | 05:13                       |
-      | config2 |      69.7      |    22.5    | 05:11                       |
+      | config1 |      43.2      |    14.2    | 01:23                       |
+      | config2 |      44.7      |    15.6    | 01:18                       |
+
+1. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
+
+    ```bash
+    training_method =  'train_ada'
+    pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+    save_model_path = 'AML_Semantic_DA_project/checkpoints/'
+    batch_size = 8
+    num_epochs = 50
+    num_workers = 2
+    aug_method = 'C-S-HF'
+    optimizer = 'sgd'
+    save_keyword = 'ADA_gta5TOcityscapes_augC-S-HF'
+    lr = 0.01
+
+    ! python AML_Semantic_DA_project/main.py --action {training_method} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size} --aug_method {aug_method}
+    ```
+
+    | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+    |---------|----------------|------------|-----------------------------|
+    | config1 |      59.4      |    19.3    | 05:13                       |
+    | config2 |      69.7      |    22.5    | 05:11                       |
 
 
 
@@ -185,35 +184,31 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       | config2 | 0.09 | 72.0           | 29.8       | 11:14                       |
 
   3.B - Evaluate the performance of the Segmentation Network adapted with MBT.
-      
 
-      ```bash
-      training_method =  'val_mbt'
-      pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-      save_model_path = 'AML_Semantic_DA_project/checkpoints/'
-      num_epochs = 50
-      num_workers = 2
-      aug_method = 'C-S-HF'
-      save_keyword = 'SSL_FDA_augC-S-HF'
-      beta = 0.01
-      optimizer = "sgd"
-      batch_size = 8
+    ```bash
+    training_method =  'val_mbt'
+    pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+    save_model_path = 'AML_Semantic_DA_project/checkpoints/'
+    num_epochs = 50
+    num_workers = 2
+    aug_method = 'C-S-HF'
+    save_keyword = 'SSL_FDA_augC-S-HF'
+    beta = 0.01
+    optimizer = "sgd"
+    batch_size = 8
 
-      ! python AML_Semantic_DA_project/main.py --action {training_method} --batch_size {batch_size} --optimizer {optimizer} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --aug_method {aug_method} --fda_beta {beta}
-      ```
+    ! python AML_Semantic_DA_project/main.py --action {training_method} --batch_size {batch_size} --optimizer {optimizer} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --aug_method {aug_method} --fda_beta {beta}
+    ```
 
       | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|----------------|------------|-----------------------------|
-      | config1 |                |            |                             |
-      | config2 |                |            |                             |
-
-
-
+      | config1 | 0.685          | 0.198      | 1:04                        |
+      | config2 | 0.701          | 0.234      | 1:03                        |
 
   3.C - Self-learning with pseudo-labels.
 
 
-      Pseudo label generation
+  - Pseudo label generation
      ```bash
       action =  'generate_pseudo_labels'
       pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
@@ -228,7 +223,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       ! python AML_Semantic_DA_project/main.py --action {action}  --batch_size {batch_size} --optimizer {optimizer} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --fda_beta {beta}
       ```
 
-      Training
+  - Training
       
       ```bash
       training_method =  'train_ssl_fda'
@@ -245,6 +240,7 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
       ! python AML_Semantic_DA_project/main.py --action {training_method} --batch_size {batch_size} --optimizer {optimizer} --pretrain_path {pretrain_path} --num_epochs {num_epochs} --num_workers {num_workers} --save_model_path {save_model_path} --aug_method {aug_method} --fda_beta {beta}
       ```
+
       | Config  | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|------|----------------|------------|-----------------------------|
       | config1 | 0.01 | 63.70          | 11.20      | 11:23                       |
@@ -524,6 +520,34 @@ mIoU per class: [8.77663524e-01 2.89172867e-01 7.58922879e-01 1.39428190e-01
  9.39660414e-02 7.36450757e-01 1.22297070e-01 9.65407210e-02
  2.84404489e-02 4.76045031e-02 1.16969937e-05]
  ```
+
+- **FDA MBT**
+
+```
+saveFile: mbt_adam_aug
+date: 07/06/2024
+average time: 1:04
+precision per pixel for test: 0.685
+mIoU for validation: 0.198
+mIoU per class: [7.93175419e-01 3.61974450e-01 6.90517461e-01 1.49956605e-01
+ 2.50215784e-02 1.49437886e-01 1.00300474e-02 7.93566591e-04
+ 5.82718680e-01 1.08574891e-01 8.53315776e-01 3.83805754e-02
+ 2.06892558e-03 6.20845069e-01 4.82404351e-02 1.75979175e-03
+ 0.00000000e+00 8.85867129e-03 0.00000000e+00]
+```
+
+```
+saveFile: mbt_sgd_aug
+date: 11/06/2024
+average time: 1:04
+precision per pixel for test: 0.701
+mIoU for validation: 0.234
+mIoU per class: [8.73175419e-01 2.81974450e-01 7.10517461e-01 1.39956605e-01 
+ 2.20215784e-02 1.39437886e-01 1.03300474e-02 7.83566591e-04 
+ 6.82718680e-01 1.07574891e-01 7.53315776e-01 3.83805754e-02 
+ 2.06892558e-03 6.20845069e-01 4.82404351e-02 1.75979175e-03 
+ 0.00000000e+00 8.85867129e-03 0.00000000e+00] 
+```
 
  - **SSL FDA**
 
