@@ -147,6 +147,9 @@ def main():
     # model
     model = BiSeNet(backbone='CatmodelSmall', n_classes=19, pretrain_model=args.pretrain_path, use_conv_last=False)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")    
+    if args.load_model_path:
+        model.load_state_dict(torch.load(args.load_model_path))
+
     if device.type == 'cuda':
         model = torch.nn.DataParallel(model).cuda()
 
@@ -178,19 +181,16 @@ def main():
     # calling function to perform requested action
     if action == 'train_simple_cityscapes' or action == 'train_simple_gta5':
         if val_only:
-            model.load_state_dict(torch.load(args.load_model_path))
             val(model, dataloader_val, device, num_classes)
         else:
             train_simple.train(args, model, optimizer, dataloader_train, dataloader_val, num_classes, device, save_subdir_path, save_keyword)        ## train loop
             val(model, dataloader_val, device, num_classes)
             
     elif action == 'val_gta5_transfer':
-        model.load_state_dict(torch.load(args.load_model_path))
         val(model, dataloader_val, device, num_classes)
     
     elif action == 'train_ada':
         if val_only:
-            model.load_state_dict(torch.load(args.load_model_path))
             val(model, dataloader_val, device, num_classes)
         else: 
             train_ADA.train(args, model, disc_model, optimizer, disc_optimizer, dataloader_train, dataloader_target, dataloader_val, num_classes, device, save_subdir_path, save_keyword)      ## train loop
@@ -198,7 +198,6 @@ def main():
               
     elif action == 'train_fda':
         if val_only:
-            model.load_state_dict(torch.load(args.load_model_path))
             val(model, dataloader_val, device, num_classes)
         else:
             train_FDA.train(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, num_classes, device, beta=args.fda_beta)  ## train loop
@@ -224,7 +223,7 @@ def main():
         
     elif action == 'train_ssl_fda':
         if val_only:
-            model.load_state_dict(torch.load(args.load_model_path))
+     
             val(model, dataloader_val, device, num_classes)
         else:
             train_SSL_FDA(args, model, optimizer, dataloader_train, dataloader_target, dataloader_val, device, beta=args.fda_beta)  ## train loop
@@ -233,7 +232,7 @@ def main():
     elif action == 'visualize':
         savePath = 'AML_Semantic_DA_project/visuals'
         os.makedirs(savePath, exist_ok=True)
-        model.load_state_dict(torch.load(args.load_model_path))
+ 
         visualize(model, val_dataset, dataloader_val, device, num_classes,savePath)
     
     else:
