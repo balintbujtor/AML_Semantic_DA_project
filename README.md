@@ -1,32 +1,158 @@
+# Real-time Domain Adaptation in Semantic Segmentation
+
 ## About
 This project tackles Domain Adaptation applied to the Real-time Semantic Segmentation
 networks, featuring an Adversarial Domain Adaptation algorithm.
 
-## TODO
-- [x] Matching label categories of GTA5 with Cityscapes
-- [ ] Training NN on Cityscapes and filling out table1
+### Authors 
+ - Bálint Bujtor
+ - Boyan Cieutat
+ - Inaam Elhelwe
+
+## Project structure
+  - `datasets/`: contains the classes that handle the datasets
+    - [Cityscapes](datasets/cityscapes.py)
+    - [GTA5](datasets/gta5.py)
+  - `model/`: contains the implementation of the models and their components that are used in the project
+    - [STDC backbone](model/stdcnet.py) - the backbone of the model
+    - [BiSeNet](model/model_stages.py)
+    - [Discriminator](model/discriminator.py) - discriminator used in the adversarial domain adaptation
+  - `trainings/`: contains the training scripts
+    - [Simple training](trainings/train_simple.py) - trains the model on the given dataset and tests it on another or on the same dataset
+    - [Adversarial Domain Adaptation](trainings/train_ADA.py) - trains the model on GTA5 and tests Cityscapes using Adversarial Domain Adaptation
+    - [Fourier Domain Adaptation](trainings/train_FDA.py) - trains the model on GTA5 and tests Cityscapes using Fourier Domain Adaptation
+    - [Semi-supervised Fourier Domain Adaptation](trainings/train_SSL_FDA.py.py) - trains the model on GTA5 and tests Cityscapes using Semi-supervised Fourier Domain Adaptation
+    - [Validation](trainings/val.py) - validates the model on the given dataset
+  - `utils/`: contains utility functions
+    - [General utilities](utils/utils.py) - contains utility functions
+    - [FDA related utilities](utils/fda.py) - contains utility functions for Fourier Domain Adaptation
+    - [Image transformations](utils/transforms.py) - contains image transformations
+  - main.py: main script that runs the training and validation
+
+
+## Information
+  - the two datasets are not included in the repository
 
 ## Useful links
 -  [Colabs env](https://colab.research.google.com/drive/1TDjhWjOQwZ8ToXjDGRF43G7Qk590C7jP)
 - [Docs](https://drive.google.com/drive/folders/1_a1j7FWd2zgzU6ZLaQybO9f02mJM_Uyo)
 
+
+
+## Steps and Results
+1. **TESTING REAL-TIME SEMANTIC SEGMENTATION**
+  1.A - Define the upper bound for the domain adaptation phase.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |----------------|------------|-----------------------------|
+      |                |            |                             |
+      |                |            |                             |
+      |                |            |                             |
+
+
+  1.B - Train on the synthetic dataset.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |----------------|------------|-----------------------------|
+
+
+  1.C - Evaluate the domain shift.
+
+      Test the model trained at step B on the cityscapes val set.
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ |
+      |----------------|------------|
+
+  1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
+
+      ```bash
+
+      ```
+
+      | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |---------------------|----------------|------------|-----------------------------|
+
+2. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
+
+    ```bash
+
+    ```
+
+    | Augmentation        | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+    |---------------------|----------------|------------|-----------------------------|
+
+
+
+3. **IMPROVEMENTS - Image-to-image translation to improve domain adaptation**
+    You can implement a fast image-to-image translation algorithm like FDA to improve the overall domain adaptation performances. Test it and compare to step 3 results.
+
+      ```bash
+
+      ```
+
+      | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |------|----------------|------------|-----------------------------|
+
+  3.B - Evaluate the performance of the Segmentation Network adapted with MBT.
+      
+
+      ```bash
+
+      ```
+
+      | Accuracy _(%)_ | mIoU _(%)_ |
+      |----------------|------------|
+
+
+  3.C - Self-learning with pseudo-labels.
+
+
+      Pseudo label generation
+      ```bash
+
+      ```
+
+      Training
+      
+      ```bash
+
+      ```
+      | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+      |------|----------------|------------|-----------------------------|
+
+
 ## Results
 
 Common parameters:
-- Base model: STCD
+- Base model: STDC
 - Epochs: 50
 - Discriminator: Adam
 
-| Experiment                                    | Accuracy (%) | mIoU (%) | Time (avg per-epoch) | saveFile |
-| --------------------------------------------- | ------------ | -------- | -------------------- | -------- |
-| training & validation on Cityscapes           |     0.787    |  0.444   |                      |          |
-| training & validation on GTA5                 |     0.782    |  0.495   |                      |          |
-| Domain shift evaluation GTA5>Cityscapes       |     0.521    |  0.115   |                      |          |
-| ADA GTA5>Cityscapes without data augmentation |     0.594    |  0.193   |                      |          |
-| ADA GTA5>Cityscapes with data augmentation    |     0.629    |  0.161   |                      |          |
+| Experiment                                       | Accuracy (%) | mIoU (%) | Time (avg per-epoch) | saveFile |
+| ------------------------------------------------ | ------------ | -------- | -------------------- | -------- |
+| training & validation on Cityscapes              |     78.7     |  44.4    |                      |          |
+| training & validation on GTA5                    |     78.2     |  49.5    |                      |          |
+| Domain shift evaluation GTA5>Cityscapes          |     52.1     |  11.5    |                      |          |
+| ADA GTA5>Cityscapes without data augmentation    |     59.4     |  19.3    |                      |          |
+| ADA GTA5>Cityscapes with data augmentation       |     67.2     |  20.1    |                      |          |
+| SSL FDA GTA5>Cityscapes with data augmentation   |              |          |                      |          |
+| SSL FDA GTA5>Cityscapes without data augmentation|              |          |                      |          |
 
 ### Detailed Results
-- training & validation on Cityscapes
+- **training & validation on Cityscapes:**
+
 saveFile:
 date:
 precision per pixel for test: 0.787 
@@ -36,7 +162,8 @@ mIoU per class: [0.95377805 0.67910142 0.82291703 0.24003275 0.21085642 0.246934
  0.20703901 0.82966513 0.15454098 0.22780025 0.13120532 0.1293023 
  0.46101077]
  
-- training & validation on GTA5
+- **training & validation on GTA5:**
+
 saveFile:
 date:
 precision per pixel for test: 0.782 
@@ -46,7 +173,8 @@ mIoU per class: [0.96391841 0.70049577 0.7932551  0.55256778 0.24198456 0.355094
  0.16312223 0.64258123 0.53373726 0.44477375 0.61858683 0.24296685 
  0.02396857]
 
-- Domain shift evaluation GTA5>Cityscapes
+- **Domain shift evaluation GTA5>Cityscapes:**
+
 date:
 precision per pixel for test: 0.521
 mIoU for validation: 0.115
@@ -56,7 +184,8 @@ mIoU per class: [7.61754694e-01 1.71559990e-02 2.95094636e-01 1.65790444e-05
  0.00000000e+00 2.91239577e-01 1.42408418e-03 0.00000000e+00
  0.00000000e+00 0.00000000e+00 0.00000000e+00]
 
-- ADA without data aug:
+- **ADA without data aug:**
+
 saveFile:
 date:
 precision per pixel for test: 0.594
@@ -67,17 +196,15 @@ mIoU per class: [6.81801228e-01 1.07932154e-01 6.66776069e-01 5.99369935e-02
  8.57146883e-03 3.10703607e-01 4.97428665e-02 1.42098133e-02
  4.24880613e-03 1.70739188e-02 2.84853135e-04]
 
-- ADA with data aug:
+- **ADA with data aug:**
+
   /!\ to redo, values for only 30 epochs currently
 saveFile:
-date: 24/05/2024
-precision per pixel for test: 0.629
-mIoU for validation: 0.161
-mIoU per class: [8.07825793e-01 5.14077634e-02 5.64487377e-01 3.71146165e-02
- 0.00000000e+00 2.16058513e-02 1.15261030e-02 2.17890649e-04
- 5.50525005e-01 8.24728407e-02 5.85052974e-01 0.00000000e+00
- 0.00000000e+00 3.28731335e-01 1.03742343e-02 0.00000000e+00
- 5.60869385e-04 0.00000000e+00 0.00000000e+00]
-  
-  
-  
+date: 26/05/2024
+precision per pixel for test: 0.672
+mIoU for validation: 0.201
+mIoU per class: [8.55649679e-01 8.32756948e-02 6.50656282e-01 7.27817810e-02
+ 3.19655737e-03 8.41106085e-02 2.09969896e-02 2.44836400e-04
+ 6.60987629e-01 1.58780603e-01 6.76856284e-01 1.07935027e-02
+ 0.00000000e+00 5.04739004e-01 3.91791383e-02 2.96842603e-04
+ 1.00073053e-05 1.37119106e-03 0.00000000e+00]

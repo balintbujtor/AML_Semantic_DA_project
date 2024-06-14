@@ -6,6 +6,8 @@ from collections import namedtuple
 from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 from typing import Any, Tuple
+import random as rd
+import utils.transforms as transforms
 
 class CityScapes(VisionDataset):
     """
@@ -61,45 +63,38 @@ class CityScapes(VisionDataset):
     id_to_color = np.array([c.color for c in classes])
     
     
-    def __init__(self, 
-                 root_dir: str = 'Cityscapes\Cityspaces',
-                 split: str = 'train', 
-                 mode: str = 'fine', 
-                 img_transforms = None,
-                 lbl_transforms = None,
+    def __init__(self,
+                 aug_method,
+                 training_method: str = '',
+                 split: str = 'train',
+                 is_pseudo: bool = False, 
         ):
         """
-        Initialize the CityScapes dataset.
-
+        Initializes the CityScapes dataset.
+        1. Initializes the variables and ensures the correctness of the split
+        2. Cycles through the cities to save the image and label paths and ensures their lengths match
+        
         Args:
-            root_dir (str, optional): the root directory of the dataset. Defaults to 'Cityscapes\Cityspaces'.
+            aug_method (str): the augmentation method to use. Empty string for no aug, string code for the given aug method.
             split (str, optional): train test or validation split. Defaults to 'train'.
-            mode (str, optional): whether to use fine or coarse annotation. Defaults to 'fine'.
-            img_transforms (_type_, optional): transformation to perform on the image before the training step. Defaults to None.
-            lbl_transforms (_type_, optional): same but on labels (usually only type change, no augmentation). Defaults to None.
-
-        Raises:
-            NotImplementedError: coarse mode is not implemented
+            is_pseudo (bool, optional): whether to use pseudo labels or not. Defaults to False.
         """
-        # FIXME: the mode might not be needed if coarse is never going to be used
         
         super(CityScapes, self).__init__()
 
-        assert split in ['train', 'val', 'test'], "split should be 'train', 'test', or 'val'"
+        assert split in ['train', 'val'], "split should be 'train', or 'val'"
         
-        self.root_dir = root_dir
-        self.mode = 'gtFine' if mode == 'fine' else 'gtCoarse'
+        self.root_dir = "Cityscapes/Cityspaces/"    
         self.split = split
-        self.img_transforms = img_transforms
-        self.lbl_transforms = lbl_transforms
-
-        if self.mode == 'gtCoarse':
-            raise NotImplementedError("Coarse mode is not implemented yet")
+        self.aug_method = aug_method
+        self.training_method = training_method
         
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
+        label_dir = 'pseudo_labels' if is_pseudo else 'gtFine'
+        
         self.image_dir = os.path.join(self.root_dir, 'images', self.split)
-        self.label_dir = os.path.join(self.root_dir, self.mode, self.split)
+        self.label_dir = os.path.join(self.root_dir, label_dir, self.split)
 
         self.image_paths = []
         self.label_paths = []
@@ -116,62 +111,84 @@ class CityScapes(VisionDataset):
             self.label_paths.extend([os.path.join(city_label_dir, file) for file in city_label_files if 'labelTrainIds' in file])
             self.colour_map_path.extend([os.path.join(city_label_dir, file) for file in city_label_files if 'color' in file])
 
-                
         assert len(self.image_paths) == len(self.label_paths), "Number of images and labels should be the same"
-        print(f"Found {len(self.image_paths)} {self.mode} images for {self.split}")
+        print(f"Found {len(self.image_paths)} images for {self.split}")
 
     def __getitem__(self, idx: int) -> tuple:
-        """Returns the image and label at the given index
-
+        """
+        Returns the image and label at the given index
+        Performs the specified augmentation methods with a given probability
+        
         Args:
             idx (int): The index of the image and label
 
         Returns:
             tuple: The image and label
         """
-        image = Image.open(self.image_paths[idx]).convert('RGB')
-        # apply the transformations, if any
-        label = Image.open(self.label_paths[idx])
+        img = Image.open(self.image_paths[idx]).convert('RGB')
+        lbl = Image.open(self.label_paths[idx])
 
-        if self.img_transforms is not None:
-            image = self.img_transforms(image)
+        # Apply std transformations
+        if self.training_method == 'train_fda' or self.training_method == 'train_ssl_fda' :
+            img = transforms.img_nonorm_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_nonorm_transformations["std_cityscapes"](lbl)
+
+        else:
+            img = transforms.img_std_transformations["std_gta5"](img)
+            lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
+
+        # Apply augmentation
+        if self.aug_method != '':
+            if rd.random() < 0.5:
+                img = transforms.img_aug_transformations[self.aug_method](img)
+                lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)
         
-        if self.lbl_transforms is not None:   
-            label = self.lbl_transforms(label)
-        
-        return image, label
+        return img, lbl
 
     def __len__(self) -> int:
-        """returns the length of the dataset
 
-        Returns:
-            int: 
-        """
         return len(self.image_paths)
     
-    def _get_target_suffix(self, mode: str, target_type: str) -> str:
-        if target_type == "instance":
-            return f"{mode}_instanceIds.png"
-        elif target_type == "semantic":
-            return f"{mode}_labelTrainIds.png"
-        elif target_type == "color":
-            return f"{mode}_color.png"
-        else:
-            return f"{mode}_polygons.json"
-        
-          
+    
     @classmethod
     def encode_target(cls, target):
+        """Encodes the target to the train_id
+
+        Args:
+            target (int): the target to encode
+
+        Returns:
+            int: encoded target, aka train_id
+        """
         return cls.id_to_train_id[np.array(target)]
+
 
     @classmethod
     def decode_target(cls, target):
+        """Decodes the target from train_id to color
+
+        Args:
+            target (int): the train_id to decode
+
+        Returns:
+            _type_: decoded train_id to color
+        """
         target[target == 255] = 19
         #target = target.astype('uint8') + 1
         return cls.train_id_to_color[target]
 
+
     @classmethod 
     def visualize_prediction(cls,outputs,labels) -> Tuple[Any, Any]:
+        """Visualizes the predictions
+
+        Args:
+            outputs (_type_): the image that the net generated
+            labels (_type_): the corresponding, correct label
+
+        Returns:
+            Tuple[Any, Any]: The colorized predictions and the colorized labels
+        """
         preds = outputs.max(1)[1].detach().cpu().numpy()
         lab = labels.detach().cpu().numpy()
         colorized_preds = cls.decode_target(preds).astype('uint8') # To RGB images, (N, H, W, 3), ranged 0~255, numpy array

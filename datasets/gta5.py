@@ -2,12 +2,13 @@ import os
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Tuple
-from pathlib import Path
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset as torchDataset
 from datasets.cityscapes import CityScapes
-
+import random as rd
+import utils.transforms as transforms
+from pathlib import Path
 
 class BaseGTALabels(metaclass=ABCMeta):
     pass
@@ -71,7 +72,10 @@ class GTA5Labels_TaskCV2017(BaseGTALabels):
 
 
 class GTA5(torchDataset):
-    
+    """
+    This class handles the GTA5 dataset.
+    It contains the PathPair_ImgAndLabel class that is used to create the list of image and label paths.
+    """
     label_map = GTA5Labels_TaskCV2017()
 
     train_id = np.array([label.train_id for label in CityScapes.classes])
@@ -96,7 +100,7 @@ class GTA5(torchDataset):
             return img_path, lbl_path
 
         def create_imgpath_list(self):
-            img_dir = self.root / self.IMG_DIR_NAME
+            img_dir = Path(os.path.join(self.root,self.IMG_DIR_NAME))
             img_path = [path for path in img_dir.glob(f"*{self.SUFFIX}")]
             return img_path
 
@@ -109,41 +113,65 @@ class GTA5(torchDataset):
             return lbl_path
 
     def __init__(self, 
-                 root: Path,
-                 labels_source: str = "GTA5",
-                 img_transforms=None,
-                 lbl_transforms=None,
+                 aug_method: str,
+                 training_method: str = '',
                 ):
         """
+        Initializes the variables and saves the augmentation method.
 
-        :param root: (Path)
-            this is the directory path for GTA5 data
-            must be the following
+        Args:
+            aug_method (str): the augmentation method to use. Empty string for no aug, string code for the given aug method.
+            training_method (str, optional): If we use FDA training the image size of GTA5 and Cityscapes have to match.
+                In this case a different img transformation is used that makes the sizes equal. 
+                Defaults to ''.
         """
-        self.root = root
-        self.labels_source = labels_source
-        self.img_transforms = img_transforms
-        self.lbl_transforms = lbl_transforms
+        self.root = "GTA5"
+        self.training_method = training_method
+        self.labels_source = self.root                   
         self.paths = self.PathPair_ImgAndLabel(root=self.root, labels_source=self.labels_source)
+        self.aug_method = aug_method
         
     def __len__(self):
         return len(self.paths)
 
-    def __getitem__(self, idx, isPath=False):
+    def __getitem__(self, idx: int, isPath: bool = False):
+        """
+            Returns the item based on the idx parameter. 
+            If isPath is True, it returns the paths of the image and label.
+            If the training method is FDA, the image is resized to match the Cityscapes dataset.
+            If an augmentation method is specified, it is applied with a probability of 0.5.
+        Args:
+            idx (int): _description_
+            isPath (bool, optional): if true only returns the paths. Defaults to False.
+
+        Returns:
+            _type_: either the paths or the images and labels
+        """
         img_path, lbl_path = self.paths[idx]
         if isPath:
             return img_path, lbl_path
 
         img = self.read_img(img_path)
         lbl = self.read_img(lbl_path)
+
         
+        # IMPORTANT to convert to trainId to match with the Cityscapes labels
         lbl = Image.fromarray(np.array(self.convert_to_trainId(lbl),dtype='uint8'))
 
-        if self.img_transforms is not None:
-            img = self.img_transforms(img)
-        
-        if self.lbl_transforms is not None:
-            lbl = self.lbl_transforms(lbl)
+        # Apply std transformations
+        if self.training_method == 'train_fda' or self.training_method == 'train_ssl_fda' :
+            img = transforms.img_nonorm_transformations["std_cityscapes"](img)
+            lbl = transforms.lbl_nonorm_transformations["std_cityscapes"](lbl)
+
+        else:
+            img = transforms.img_std_transformations["std_gta5"](img)
+            lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
+
+        # Apply augmentation
+        if self.aug_method != '':
+            if rd.random() < 0.5:
+                img = transforms.img_aug_transformations[self.aug_method](img)
+                lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)
                       
         return img, lbl
 
