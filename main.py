@@ -85,8 +85,6 @@ def main():
             target_dataset = 'cityscapes'
             val_dataset = 'cityscapes'
             is_pseudo = True
-            aug_method = 'nonorm'
-            aug_method_trg = 'nonorm'
 
         case 'visualize':
             val_dataset = 'cityscapes'
@@ -97,12 +95,12 @@ def main():
 
     if train_dataset == 'cityscapes':
         print("dataloader_train is on cityscapes")
-        train_dataset = CityScapes(aug_method=aug_method, split='train', is_pseudo=False)
+        train_dataset = CityScapes(aug_method=aug_method, training_method=action, split='train', is_pseudo=False)
         dataloader_train = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
         
     if target_dataset == 'cityscapes':
         print("dataloader_target is on cityscapes")
-        target_dataset = CityScapes(aug_method=aug_method_trg, split='train', is_pseudo=is_pseudo)
+        target_dataset = CityScapes(aug_method=aug_method_trg, training_method=action, split='train', is_pseudo=is_pseudo)
         dataloader_target = DataLoader(target_dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=False, drop_last=True)
 
     if val_dataset == 'cityscapes':

@@ -168,7 +168,7 @@ class GTA5(torchDataset):
             lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
 
         # Apply augmentation
-        if self.aug_method != '' and self.aug_method != 'nonorm':
+        if self.aug_method != '':
             if rd.random() < 0.5:
                 img = transforms.img_aug_transformations[self.aug_method](img)
                 lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)

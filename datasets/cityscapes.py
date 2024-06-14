@@ -65,6 +65,7 @@ class CityScapes(VisionDataset):
     
     def __init__(self,
                  aug_method,
+                 training_method: str = '',
                  split: str = 'train',
                  is_pseudo: bool = False, 
         ):
@@ -86,7 +87,8 @@ class CityScapes(VisionDataset):
         self.root_dir = "Cityscapes/Cityspaces/"    
         self.split = split
         self.aug_method = aug_method
-
+        self.training_method = training_method
+        
         cities = sorted(os.listdir(os.path.join(self.root_dir, 'images', self.split)))
 
         label_dir = 'pseudo_labels' if is_pseudo else 'gtFine'
@@ -126,22 +128,20 @@ class CityScapes(VisionDataset):
         img = Image.open(self.image_paths[idx]).convert('RGB')
         lbl = Image.open(self.label_paths[idx])
 
-        # Apply std transformation
-        if self.aug_method == '':
-            img = transforms.img_std_transformations["std_cityscapes"](img)
-            lbl = transforms.lbl_std_transformations["std_cityscapes"](lbl)
-
-        # no normalization for fda
-        elif self.aug_method == 'nonorm':
+        # Apply std transformations
+        if self.training_method == 'train_fda' or self.training_method == 'train_ssl_fda' :
             img = transforms.img_nonorm_transformations["std_cityscapes"](img)
             lbl = transforms.lbl_nonorm_transformations["std_cityscapes"](lbl)
-            
+
+        else:
+            img = transforms.img_std_transformations["std_gta5"](img)
+            lbl = transforms.lbl_std_transformations["std_gta5"](lbl)
+
         # Apply augmentation
-        elif self.aug_method != '' and self.aug_method != 'nonorm':
+        if self.aug_method != '':
             if rd.random() < 0.5:
                 img = transforms.img_aug_transformations[self.aug_method](img)
                 lbl = transforms.lbl_aug_transformations[self.aug_method](lbl)
-        
         
         return img, lbl
 

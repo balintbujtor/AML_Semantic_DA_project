@@ -73,10 +73,7 @@ def train_SSL_FDA(args, model, optimizer, dataloader_train_source, dataloader_tr
                 print("Pseudo labels contain incorrect values")
                 print("Incorrect values: ", torch.unique(label_target_pseudo[mask]))
                 raise ValueError("Pseudo labels contain incorrect values")
-                
-                
-            orig_data_source =  data_source.clone()
-            orig_data_target = data_target.clone()
+            
             
             source_in_target = fda.FDA_source_to_target(data_source, data_target, L=beta)
             
