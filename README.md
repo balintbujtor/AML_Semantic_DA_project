@@ -247,8 +247,8 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       ```
       | Config  | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|------|----------------|------------|-----------------------------|
-      | config1 | 0.01 |              |            |                             |
-      | config2 | 0.05 |              |            |                             |
+      | config1 | 0.01 |                |            |                             |
+      | config2 | 0.05 |                |            |                             |
 
 
 ### Detailed Results
@@ -528,7 +528,7 @@ mIoU per class: [8.77663524e-01 2.89172867e-01 7.58922879e-01 1.39428190e-01
  - **SSL FDA**
 
 ```
-saveFile: fda01_adam_aug
+saveFile: ssl-fda01_adam_aug
 date: 11/06/2024
 average time: 11:23
 precision per pixel for test: 0.637
@@ -541,7 +541,7 @@ mIoU per class: [8.77663524e-01 2.89172867e-01 7.58922879e-01 1.39428190e-01
  ```
 
  ```
-saveFile: fda01_sgd_aug
+saveFile: ssl-fda01_sgd_aug
 date: 11/06/2024
 average time: 11:22
 precision per pixel for test: 0.663
