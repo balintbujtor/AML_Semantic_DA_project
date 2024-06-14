@@ -69,65 +69,65 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
 
 
-  1.B - Train on the synthetic dataset.
-
-    ```bash
-    action = 'train_simple_gta5'
-    pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-    save_model_path = 'AML_Semantic_DA_project/checkpoints/'
-    num_epochs = 50
-    num_workers = 4
-    save_keyword = 'Gta5_Simple_test_1'
-    batchsize=8
-    lr=0.01
-    optimizer = 'sgd'
-    batch_size = 8
-
-    ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --num_epochs 50 --num_workers 4 --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size}
-    ```
-
-    | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-    |---------|----------------|------------|-----------------------------|
-    | config1 |      78.2      |    49.5    | 04:48                       |
-    | config2 |      80.8      |    64.0    | 04:37                       |
-
-
-
-  1.C - Evaluate the domain shift.
-
-      Test the model trained at step B on the cityscapes val set.
+    1.B - Train on the synthetic dataset.
 
       ```bash
-      action = 'val_gta5_transfer'
+      action = 'train_simple_gta5'
       pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+      save_model_path = 'AML_Semantic_DA_project/checkpoints/'
+      num_epochs = 50
       num_workers = 4
-      load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_noaug/best.pth'
+      save_keyword = 'Gta5_Simple_test_1'
+      batchsize=8
+      lr=0.01
+      optimizer = 'sgd'
+      batch_size = 8
 
-      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
+      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --num_epochs 50 --num_workers 4 --save_model_path {save_model_path} --learning_rate {lr} --optimizer {optimizer} --batch_size {batch_size}
       ```
 
       | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|----------------|------------|-----------------------------|
-      | config1 |      52.1      |    11.5    | 01:20                       |
-      | config2 |      55.3      |    22.1    | 01:18                       |
+      | config1 |      78.2      |    49.5    | 04:48                       |
+      | config2 |      80.8      |    64.0    | 04:37                       |
 
 
 
-  1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
+    1.C - Evaluate the domain shift.
 
-      ```bash
-      action = 'val_gta5_transfer'
-      pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
-      num_workers = 4
-      load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_aug/best.pth'
+        Test the model trained at step B on the cityscapes val set.
 
-      ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
-      ```
+        ```bash
+        action = 'val_gta5_transfer'
+        pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+        num_workers = 4
+        load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_noaug/best.pth'
 
-      | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
-      |---------|----------------|------------|-----------------------------|
-      | config1 |                |            |                             |
-      | config2 |                |            |                             |
+        ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
+        ```
+
+        | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+        |---------|----------------|------------|-----------------------------|
+        | config1 |      52.1      |    11.5    | 01:20                       |
+        | config2 |      55.3      |    22.1    | 01:18                       |
+
+
+
+    1.D - Try to perform some augmentation techniques during training of STDC on GTA. Set the probability to perform augmentation to 0.5.
+
+        ```bash
+        action = 'val_gta5_transfer'
+        pretrain_path = 'AML_Semantic_DA_project/checkpoints/STDCNet813M_73.91.tar'
+        num_workers = 4
+        load_model_path = 'AML_Semantic_DA_project/checkpoints/simple_gta5_sgd_aug/best.pth'
+
+        ! python AML_Semantic_DA_project/main.py --action {action} --pretrain_path {pretrain_path} --load_model_path {load_model_path}   --num_workers 4  --validation_only True
+        ```
+
+        | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
+        |---------|----------------|------------|-----------------------------|
+        | config1 |      43.2      |    14.2    | 01:23                       |
+        | config2 |      44.7      |    15.6    | 01:18                       |
 
 1. **IMPLEMENTING UNSUPERVISED ADVERSARIAL DOMAIN ADAPTATION** - Perform adversarial training with labelled synthetic data (source) and unlabelled real-word data (target).
 
@@ -149,8 +149,8 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
       | Config  | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|----------------|------------|-----------------------------|
-      | config1 |      50.8      |    22.2    | 01:20                       |
-      | config2 |      55.3      |    22.1    | 01:18                       |
+      | config1 |      59.4      |    19.3    | 05:13                       |
+      | config2 |      69.7      |    22.5    | 05:11                       |
 
 
 
@@ -177,12 +177,12 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
 
       | Config  | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|------|----------------|------------|-----------------------------|
-      | config1 | 0.01 |              |            |                             |
-      | config1 | 0.05 |              |            |                             |
-      | config1 | 0.09 |              |            |                             |
-      | config2 | 0.01 |              |            |                             |
-      | config2 | 0.05 |              |            |                             |
-      | config2 | 0.09 |              |            |                             |
+      | config1 | 0.01 | 67.6           | 21.5       | 11:27                       |
+      | config1 | 0.05 | 71.5           | 30.4       | 11:24                       |
+      | config1 | 0.09 | 65.1           | 18.4       | 11:26                       |
+      | config2 | 0.01 | 71.5           | 30.4       | 11:18                       |
+      | config2 | 0.05 | 73.2           | 30.9       | 11:14                       |
+      | config2 | 0.09 | 72.0           | 29.8       | 11:14                       |
 
   3.B - Evaluate the performance of the Segmentation Network adapted with MBT.
       
@@ -247,8 +247,8 @@ networks, featuring an Adversarial Domain Adaptation algorithm.
       ```
       | Config  | beta | Accuracy _(%)_ | mIoU _(%)_ | Train Time (avg per-epochs) |
       |---------|------|----------------|------------|-----------------------------|
-      | config1 | 0.01 |                |            |                             |
-      | config2 | 0.05 |                |            |                             |
+      | config1 | 0.01 | 63.70          | 11.20      | 11:23                       |
+      | config2 | 0.01 | 66.3           | 17.30      | 11:22                       |
 
 
 ### Detailed Results
